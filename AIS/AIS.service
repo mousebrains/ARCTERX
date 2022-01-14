@@ -1,0 +1,31 @@
+#
+# Listen for datagrams containing NEMA sentences with AIS payloads.
+# Decrypt the payloads and send them to consumers.
+#
+# sudo cp AIS.service /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable AIS.service
+# sudo systemctl start AIS.service
+#
+# May-2021, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Collect AIS datagrams
+
+[Service]
+# Type=simple # Default
+User=pat
+WorkingDirectory=/home/pat/
+#
+ExecStart=/home/pat/Revelle/AIS/receiver.py \
+    --logfile=/home/pat/logs/AIS.log \
+    --r2dbSQLite3=/home/pat/Processed/AIS/ais.raw.db \
+    --ais2udp=127.0.0.1:9999 \
+    --inputUDP=888
+	
+RestartSec=60
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
