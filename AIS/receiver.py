@@ -57,7 +57,11 @@ try:
     decrypt = Decrypter(args)
     accumulator = Accumulator(args)
 
-    for item in ((AIS2DB, decrypt), (AIS2UDP, accumulator), (AIS2CSV, decrypt), (Raw2DB, rdr)):
+    for item in (
+            (AIS2DB, decrypt), 
+            (AIS2UDP, accumulator),
+            (AIS2CSV, decrypt),
+            (Raw2DB, rdr)):
         if not item[0].qUse(args): continue
         thrd = item[0](args)
         item[1].queue(thrd)
