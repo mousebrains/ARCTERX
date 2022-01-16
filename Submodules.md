@@ -1,5 +1,5 @@
 # *This GIT repository uses submodules!*
-See *https://git-scm.com/book/en/v2/Git-Tools-Submodules* for details
+See [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) for details
 
 To clone the repository, with all the submodule contents use:
 - `git clone --recurse-submodules git@github.com:mousebrains/ARCTERX.git`
