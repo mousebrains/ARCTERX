@@ -1,3 +1,6 @@
 [submodule "AIS/TPWUtils"]
 	path = AIS/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
+[submodule "SSHTunnel/TPWUtils"]
+	path = SSHTunnel/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git
