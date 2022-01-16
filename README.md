@@ -1,4 +1,4 @@
-# [This GIT repository uses submodules!](Submodules.md)
+# [This GIT repository uses submodules! BEFORE CLONING SEE Submodules.md!](Submodules.md) 
 
 # ARCTERX
 Software for use during ARCTERX Pilot Cruise
