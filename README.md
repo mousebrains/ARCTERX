@@ -1,4 +1,4 @@
-# *[BEFORE CLONING SEE READ Submodules.md!](Submodules.md)*
+# *[BEFORE CLONING READ Submodules.md!](Submodules.md)*
 
 # ARCTERX
 Software for use during ARCTERX Pilot Cruise
