@@ -12,3 +12,7 @@ To set your diff *GIT* defaults, please do the following:
 - `git config --global diff.submodule log`
 - `git config --global status.submodulesummary 1`
 - `git config --global push.recurseSubmodules on-demand`
+
+# If submodules fall behind you can do
+`git submodule update --remote --merge`
+to force a "full" update.
