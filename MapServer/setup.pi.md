@@ -21,7 +21,7 @@ and installed Ubuntu Server 21.10
 - `sudo apt install nginx` to install the latest nginx webserver. 
 - `sudo apt install tomcat9` to install the latest Tomcat webserver.
 - `sudo reboot` to reboot the system and use the updated packages.
-- Copy the GeoServer war file to the Pi server, `scp \*.war ubuntu@rrmap.local:` where \*.war is the GeoServer war file from the GeoServer zip file you downloaded
+- Copy the GeoServer war file to the Pi server, `scp *.war ubuntu@rrmap.local:` where \*.war is the GeoServer war file from the GeoServer zip file you downloaded
 - Copy geoserver file in the Git repository to the Pi server using `scip geoserver ubuntu@rrmap.local:`
 - `ssh ubuntu@rrmap.local` log back into the Pi.
 - `sudo cp geoserver.war /var/lib/tomcat9/webapps` to install GeoServer under Tomcat
