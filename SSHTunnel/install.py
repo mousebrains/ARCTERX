@@ -48,15 +48,16 @@ parser.add_argument("--cp", type=str, default="/usr/bin/cp",
         help="cp executable")
 parser.add_argument("--sudo", type=str, default="/usr/bin/sudo",
         help="sudo executable")
-parser.add_argument("--knownHosts", type=str, default="hostnames.yaml",
-        help="Known host to port dictionary YAML file")
+parser.add_argument("--knownHosts", type=str, help="Known host to port dictionary YAML file")
 args = parser.parse_args()
 
+root = os.path.dirname(os.path.abspath(__file__))
+
 if args.knownHosts is None:
-    knownHosts = {}
-else: # Load from file
-    with open(args.knownHosts, "r") as fp:
-        knownHosts = yaml.safe_load(fp)
+    args.knownHosts = os.path.join(root, "hostnames.yaml")
+
+with open(args.knownHosts, "r") as fp:
+    knownHosts = yaml.safe_load(fp)
 
 hostname = socket.gethostname()
 
@@ -76,8 +77,6 @@ if args.group is None: # Get this process's group
 
 if args.directory is None: # working directory to move to
     args.directory = os.path.expanduser(f"~{args.username}/logs")
-
-root = os.path.dirname(os.path.abspath(__file__))
 
 with open(os.path.join(root, args.template), "r") as fp: 
     input = fp.read() # Load the entire template
