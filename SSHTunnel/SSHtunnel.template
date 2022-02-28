@@ -16,13 +16,20 @@ Description=SSHtunnel
 # type=simple
 User=@USERNAME@
 Group=@GROUPNAME@
+
 WorkingDirectory=@DIRECTORY@
+ReadWritePaths=@DIRECTORY@
+ReadOnlyPaths=/
+
 ExecStart=@EXECUTABLE@ \
 	--verbose \
 	--logfile=@LOGFILE@ \
 	--host=@HOSTNAME@ \
 	--remotePort=@PORT@
 RestartSec=@RESTARTSECONDS@
+
+# Harden
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target
