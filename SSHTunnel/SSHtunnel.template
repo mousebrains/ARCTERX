@@ -1,0 +1,28 @@
+# TEMPLATE
+#
+# SSHtunnel service file
+#  Set up a service which maintains a SSH tunnel to a host
+#  that can be backtracked
+#
+# @DATE@
+# @GENERATED@
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=SSHtunnel
+
+[Service]
+# type=simple
+User=@USERNAME@
+Group=@GROUPNAME@
+WorkingDirectory=@DIRECTORY@
+ExecStart=@EXECUTABLE@ \
+	--verbose \
+	--logfile=@LOGFILE@ \
+	--host=@HOSTNAME@ \
+	--remotePort=@PORT@
+RestartSec=@RESTARTSECONDS@
+
+[Install]
+WantedBy=multi-user.target
