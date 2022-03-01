@@ -7,6 +7,8 @@
 from argparse import ArgumentParser
 import subprocess
 import os
+import socket
+import sys
 
 def execCmd(cmd:tuple[str], inputText:bytes=None, qIgnoreOutput:bool=False) -> None:
     if isinstance(inputText, str):
@@ -19,10 +21,13 @@ def execCmd(cmd:tuple[str], inputText:bytes=None, qIgnoreOutput:bool=False) -> N
             print(str(s.stdout, "utf-8"))
         except:
             print(s.stdout)
+    return s.stdout
+
 
 parser = ArgumentParser()
 grp = parser.add_argument_group(description="Syncthing configuration options")
 grp.add_argument("--user", type=str, help="Username to run syncthing as")
+grp.add_argument("--peer", type=str, action="append", help="Peers to sync with")
 grp = parser.add_argument_group(description="Command full paths")
 grp.add_argument("--sudo", type=str, default="/usr/bin/sudo", help="Full path to sudo")
 grp.add_argument("--curl", type=str, default="/usr/bin/curl", help="Full path to curl")
@@ -62,4 +67,22 @@ execCmd([args.sudo, args.systemctl, "enable", f"syncthing@{args.user}.service"])
 # Start the syncthing for this user
 execCmd([args.sudo, args.systemctl, "start", f"syncthing@{args.user}.service"])
 
-# --device-id
+deviceID = execCmd([args.syncthing, "--device-id"], qIgnoreOutput=True)
+try:
+    hostname = socket.gethostname()
+    fn = f"deviceID.{hostname}"
+    print("Writing device ID to", fn)
+    with open(fn, "wb") as fp: fp.write(deviceID)
+except Exception as e:
+    print("Error getting deviceID", deviceID)
+    print(e)
+    sys.exit(1)
+
+if args.peer:
+    for peer in args.peer:
+        fn = f"deviceID.{peer}"
+        if not os.path.isfile(fn):
+            print(f"Device ID file for {peer} not found, {fn}")
+            sys.exit(1)
+        with open(fn, "r") as fp: peerID = fp.read()
+        print("Peer id", peerID)
