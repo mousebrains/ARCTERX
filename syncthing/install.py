@@ -125,6 +125,14 @@ def remoteFolder(myID:str, peer:str, folder:str, args:ArgumentParser) -> None:
             "devices", "add", "--device-id", myID]
     execCmd(cmd)
 
+def updatePeerParameters(peerName:str, peerID:str, args:ArgumentParser) -> None:
+    cmd = [args.syncthing, "cli", "config", "devices", peerID]
+    cmd.extend(["name", "set", peerName])
+    if args.compression: cmd.extend(["compression", "set", args.compression])
+    if args.kbpsSend > 0: cmd.extend(["max-send-kbps", "set",, str(args.kbpsSend)])
+    if args.kbpsRecv > 0: cmd.extend(["max-recv-kbps", "set",, str(args.kbpsRecv)])
+    if args.kibsRequest > 0: cmd.extend(["max-request-kib", "set",, str(args.kibsRequest)])
+
 def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
     fn = f"deviceID.{peer}"
     if not os.path.isfile(fn):
@@ -133,15 +141,8 @@ def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
 
     with open(fn, "r") as fp: peerID = fp.read().strip()
 
-    cmd = [args.syncthing, "cli", "config", "devices", "add",
-            "--device-id", peerID,
-            "--name", peer,
-            ]
-    if args.compression: cmd.extend(["--compression", args.compression])
-    if args.kbpsSend > 0: cmd.extend(["--max-send-kbps", str(args.kbpsSend)])
-    if args.kbpsRecv > 0: cmd.extend(["--max-recv-kbps", str(args.kbpsRecv)])
-    if args.kibsRequest > 0: cmd.extend(["--max-request-kib", str(args.kibsRequest)])
-    execCmd(cmd)
+    execCmd((args.syncthing, "cli", "config", "devices", "add", "--device-id", peerID))
+    updatePeerParameters(peerName, peerID, args)
 
     for name in args.folderShip:
         shareFolder(peerID, name, args)
