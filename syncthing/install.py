@@ -114,13 +114,25 @@ def makeFolders(args:ArgumentParser) -> None:
         else:
             print("Making shore side shore folder", name)
             mkFolder(name, "sendonly" if args.shore else "receiveonly", args)
-    
+
+def shareFolder(peerID:str, folder:str, args:ArgumentParser) -> None:
+    cmd = [args.syncthing, "cli", "config", "folders", folder, 
+            "devices", "add", "--device-id", peerID]
+    execCmd(cmd)
+
+def remoteFolder(myID:str, peer:str, folder:str, args:ArgumentParser) -> None:
+    cmd = [args.ssh, peer, args.syncthing, "cli", "config", "folders", folder,
+            "devices", "add", "--device-id", myID]
+    execCmd(cmd)
+
 def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
     fn = f"deviceID.{peer}"
     if not os.path.isfile(fn):
         print(f"Device ID file for {peer} not found, {fn}")
-        return False
+        sys.exit(1)
+
     with open(fn, "r") as fp: peerID = fp.read().strip()
+
     cmd = [args.syncthing, "cli", "config", "devices", "add",
             "--device-id", peerID,
             "--name", peer,
@@ -129,8 +141,15 @@ def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
     if args.kbpsSend > 0: cmd.extend(["--max-send-kbps", str(args.kbpsSend)])
     if args.kbpsRecv > 0: cmd.extend(["--max-recv-kbps", str(args.kbpsRecv)])
     if args.kibsRequest > 0: cmd.extend(["--max-request-kib", str(args.kibsRequest)])
-    print(" ".join(cmd))
     execCmd(cmd)
+
+    for name in args.folderShip:
+        shareFolder(peerID, name, args)
+        remoteFolder(myID, peerName, name, args)
+
+    for name in args.folderShore:
+        shareFolder(peerID, name, args)
+        remoteFolder(myID, peerName, name, args)
 
 parser = ArgumentParser()
 grp = parser.add_mutually_exclusive_group(required=True)
@@ -157,6 +176,7 @@ grp.add_argument("--compression", type=str, default="metadata",
         choices=("metadata", "always", "never"), help="Type of data to compress")
 grp = parser.add_argument_group(description="Command full paths")
 grp.add_argument("--sudo", type=str, default="/usr/bin/sudo", help="Full path to sudo")
+grp.add_argument("--ssh", type=str, default="/usr/bin/ssh", help="Full path to ssh")
 grp.add_argument("--curl", type=str, default="/usr/bin/curl", help="Full path to curl")
 grp.add_argument("--echo", type=str, default="/usr/bin/echo", help="Full path to echo")
 grp.add_argument("--tee", type=str, default="/usr/bin/tee", help="Full path to tee")
@@ -176,7 +196,6 @@ deviceID = installSyncthing(args)
 if not args.nofolder: # Set up the folders
     makeFolders(args)
 
-if not args.nodevice and args.peer:
+if not args.nodevice and args.peer: # Set up devices
     for peer in args.peer:
-        if not updatePeer(deviceID, peer, args):
-            sys.exit(1)
+        updatePeer(deviceID, peer, args)
