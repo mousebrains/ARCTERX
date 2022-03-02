@@ -128,10 +128,27 @@ def shareFolder(peerID:str, folder:str, args:ArgumentParser) -> None:
             "devices", "add", "--device-id", peerID]
     execCmd(cmd)
 
+def modifyParams(cmd:tuple[str], args:ArgumentParser) -> None:
+    # Now modify parameters if needed
+    if args.compression is not None:
+        execCmd(cmd + ("compression", "set", args.compression))
+    if args.kbpsSend is not None:
+        execCmd(cmd + ("max-send-kbps", "set", str(args.kbpsSend)))
+    if args.kbpsRecv is not None:
+        execCmd(cmd + ("max-recv-kbps", "set", str(args.kbpsRecv)))
+    if args.kibsRequest is not None:
+        execCmd(cmd + ("max-request-kib", "set", str(args.kibsRequest)))
+
+def remoteDevice(myID:str, peer:str, args:ArgumentParser) -> None:
+    # Tell the remote host who I am
+    execCmd((args.ssh, peer, args.syncthing, "cli", "config", "devices", "add",
+        "--device-id", myID, "--name", socket.gethostname()))
+    modifyParams((args.ssh, peer, args.syncthing, "cli", "config", "devices", myID), args)
+
 def remoteFolder(myID:str, peer:str, folder:str, args:ArgumentParser) -> None:
-    cmd = [args.ssh, peer, args.syncthing, "cli", "config", "folders", folder,
-            "devices", "add", "--device-id", myID]
-    execCmd(cmd)
+    # Now share folders
+    execCmd((args.ssh, peer, args.syncthing, "cli", "config", "folders", folder,
+            "devices", "add", "--device-id", myID))
 
 def updatePeer(myID:str, peerName:str, devices:set[str], args:ArgumentParser) -> None:
     fn = f"deviceID.{peer}"
@@ -146,11 +163,8 @@ def updatePeer(myID:str, peerName:str, devices:set[str], args:ArgumentParser) ->
             "--device-id", peerID, "--name", peerName))
 
     # We now know the peerID is added, so adjust the parameters
-    cmd = (args.syncthing, "cli", "config", "devices", peerID)
-    if args.compression: execCmd(cmd + ("compression", "set", args.compression))
-    if args.kbpsSend > 0: execCmd(cmd + ("max-send-kbps", "set", str(args.kbpsSend)))
-    if args.kbpsRecv > 0: execCmd(cmd + ("max-recv-kbps", "set", str(args.kbpsRecv)))
-    if args.kibsRequest > 0: execCmd(cmd + ("max-request-kib", "set", str(args.kibsRequest)))
+    modifyParams((args.syncthing, "cli", "config", "devices", peerID), args)
+    remoteDevice(myID, peerName, args) # Teach the remote host about me
 
     for name in args.folderShip:
         shareFolder(peerID, name, args)
