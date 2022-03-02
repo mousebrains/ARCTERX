@@ -69,20 +69,28 @@ def installSyncthing(args:ArgumentParser) -> str:
 
     return deviceID
 
-def getFolders(args:ArgumentParser) -> set:
-    known = set()
-    s = subprocess.run((args.syncthing, "cli", "config", "folders", "list"),
-            shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+def getList(cmd:tuple[str]=None, name:str=None) -> set:
+    if cmd is None:
+        if name is None: raise Exception("You must specify either cmd or name")
+        cmd = (args.syncthing, "cli", "config", name, "list")
+    items = set()
+    s = subprocess.run(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     if s.returncode:
-        print("Error getting folders")
+        print("Error executing", cmd)
         print(s)
         sys.exit(1)
 
     for name in s.stdout.split(b"\n"):
         name = str(name, "utf-8").strip()
-        if name: known.add(name)
+        if name: items.add(name)
 
-    return known
+    return items
+
+def getDevices(args:ArgumentParser) -> set:
+    return getList(name="devices")
+
+def getFolders(args:ArgumentParser) -> set:
+    return getList(name="folders")
 
 def mkFolder(name:str, typeName:str, args:ArgumentParser) -> None:
     cmd = [args.syncthing, "cli", "config", "folders", "add",
@@ -125,16 +133,7 @@ def remoteFolder(myID:str, peer:str, folder:str, args:ArgumentParser) -> None:
             "devices", "add", "--device-id", myID]
     execCmd(cmd)
 
-def updatePeerParameters(peerName:str, peerID:str, args:ArgumentParser) -> None:
-    cmd = [args.syncthing, "cli", "config", "devices", peerID]
-    cmd.extend(["name", "set", peerName])
-    if args.compression: cmd.extend(["compression", "set", args.compression])
-    if args.kbpsSend > 0: cmd.extend(["max-send-kbps", "set", str(args.kbpsSend)])
-    if args.kbpsRecv > 0: cmd.extend(["max-recv-kbps", "set", str(args.kbpsRecv)])
-    if args.kibsRequest > 0: cmd.extend(["max-request-kib", "set", str(args.kibsRequest)])
-    execCmd(cmd)
-
-def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
+def updatePeer(myID:str, peerName:str, devices:set[str], args:ArgumentParser) -> None:
     fn = f"deviceID.{peer}"
     if not os.path.isfile(fn):
         print(f"Device ID file for {peer} not found, {fn}")
@@ -142,8 +141,16 @@ def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
 
     with open(fn, "r") as fp: peerID = fp.read().strip()
 
-    execCmd((args.syncthing, "cli", "config", "devices", "add", "--device-id", peerID))
-    updatePeerParameters(peerName, peerID, args)
+    if not peerID in devices: # Unknown peerID, so add it
+        execCmd((args.syncthing, "cli", "config", "devices", "add",
+            "--device-id", peerID, "--name", peerName))
+
+    # We now know the peerID is added, so adjust the parameters
+    cmd = (args.syncthing, "cli", "config", "devices", peerID)
+    if args.compression: execCmd(cmd + ("compression", "set", args.compression))
+    if args.kbpsSend > 0: execCmd(cmd + ("max-send-kbps", "set", str(args.kbpsSend)))
+    if args.kbpsRecv > 0: execCmd(cmd + ("max-recv-kbps", "set", str(args.kbpsRecv)))
+    if args.kibsRequest > 0: execCmd(cmd + ("max-request-kib", "set", str(args.kibsRequest)))
 
     for name in args.folderShip:
         shareFolder(peerID, name, args)
@@ -199,5 +206,6 @@ if not args.nofolder: # Set up the folders
     makeFolders(args)
 
 if not args.nodevice and args.peer: # Set up devices
+    devices = getDevices(args)
     for peer in args.peer:
-        updatePeer(deviceID, peer, args)
+        updatePeer(deviceID, peer, devices, args)
