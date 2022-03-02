@@ -129,9 +129,10 @@ def updatePeerParameters(peerName:str, peerID:str, args:ArgumentParser) -> None:
     cmd = [args.syncthing, "cli", "config", "devices", peerID]
     cmd.extend(["name", "set", peerName])
     if args.compression: cmd.extend(["compression", "set", args.compression])
-    if args.kbpsSend > 0: cmd.extend(["max-send-kbps", "set",, str(args.kbpsSend)])
-    if args.kbpsRecv > 0: cmd.extend(["max-recv-kbps", "set",, str(args.kbpsRecv)])
-    if args.kibsRequest > 0: cmd.extend(["max-request-kib", "set",, str(args.kibsRequest)])
+    if args.kbpsSend > 0: cmd.extend(["max-send-kbps", "set", str(args.kbpsSend)])
+    if args.kbpsRecv > 0: cmd.extend(["max-recv-kbps", "set", str(args.kbpsRecv)])
+    if args.kibsRequest > 0: cmd.extend(["max-request-kib", "set", str(args.kibsRequest)])
+    execCmd(cmd)
 
 def updatePeer(myID:str, peerName:str, args:ArgumentParser) -> None:
     fn = f"deviceID.{peer}"
