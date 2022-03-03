@@ -54,7 +54,7 @@ Host vm3 glidervm3 glidervm3.ceoas.oregonstate.edu
   - `cd ~`
   - `git clone --recurse-submodules git@github.com:mousebrains/ARCTERX.git`
 28. Set up reverse tunnel so someone on shore can tunnel into the shipboard server, `ARCTERX/SSHTunnel/install.py`
-30. See [../syncthing/README.md](syncthing) for instructions on installing syncthing for file syncing.
+30. See [syncthing](syncthing/README.md) for instructions on installing syncthing for file syncing.
 
 31. Add a mount points for all users on all machines by adding *~/SUNRISE/SAMBA/forall.conf* to */etc/samba/smb.conf*
 32. If on the waltonsmith0, create a mount point for Jasmine and the ASVs by:
