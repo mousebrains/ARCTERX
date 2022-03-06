@@ -1,0 +1,31 @@
+#
+# Fetch new information from Ko's model runs and make a movie
+#
+# N.B. This has two components, DongKo.service and DongKo.timer
+#
+# sudo cp DongKo.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable DongKo.timer DongKo.service
+# sudo systemctl start DongKo.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Ko's model plots
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/DongKo
+#
+ExecStart=/home/pat/ARCTERX/DongKo/scrapper.py \
+	--logfile=/home/pat/logs/DongKo.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="DongKo Scraper" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

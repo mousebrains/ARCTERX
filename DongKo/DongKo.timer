@@ -1,0 +1,29 @@
+#
+# Scrape Ko's model graphs and generate movies from them.
+#
+# N.B. This has two components, DongKo.service and DongKo.timer
+#
+# sudo cp DongKo.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable DongKo.timer DongKo.service
+# sudo systemctl start DongKo.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers DongKo
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Scrap Ko's model output
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# the model run is typically run by 07:00 CST
+OnCalendar=*-*-* 13:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
