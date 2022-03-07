@@ -52,7 +52,9 @@ def myFetch(url:str, qNoFetch:bool=False) -> bytes:
     if qNoFetch: return None
     with requests.get(url) as r:
         if r.status_code == 200:
-            return r.content
+            content = r.content
+            logger.info("Fetched %s, %s", url, len(content))
+            return content
         logRequestsProblem(url, r)
         return None
 
@@ -129,6 +131,7 @@ for key in items:
     with TemporaryDirectory() as tDir:
         cnt = 0
         for hour in sorted(items[key]):
+            if hour < 0: continue # Ignore hindcast
             href = items[key][hour]
             gif = os.path.join(tDir, os.path.basename(href))
             png = os.path.join(tDir, f"{cnt:03d}.png")
@@ -150,6 +153,8 @@ for key in items:
                 mp4, # Output filename
             ]
         sp = subprocess.run(cmd, shell=False, check=False, capture_output=True)
-        if sp.returncode != 0:
+        if sp.returncode == 0:
+            logger.info("Creeated %s", mp4)
+        else:
             logger.error("Unable to create %s, rc=%s", mp4, sp.returncode)
             logger.info("\n%s", s)
