@@ -21,7 +21,7 @@ Description=Scrap Ko's model output
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
 # the model run is typically run by 07:00 CST
-OnCalendar=*-*-* 13:30:00
+OnCalendar=*-*-* 7:30:00 US/Central
 Persistent=true
 
 [Install]
