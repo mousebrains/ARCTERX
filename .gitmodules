@@ -7,9 +7,6 @@
 [submodule "Isobaths"]
 	path = Isobaths
 	url = git@github.com:mousebrains/Isobaths.git
-[submodule "AVISO"]
-	path = AVISO
-	url = git@github.com:mousebrains/AVISO.git
 [submodule "DongKo/TPWUtils"]
 	path = DongKo/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
