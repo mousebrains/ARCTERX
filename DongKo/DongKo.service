@@ -20,7 +20,7 @@ Type=oneshot
 User=pat
 WorkingDirectory=/home/pat/ARCTERX/DongKo
 #
-ExecStart=/home/pat/ARCTERX/DongKo/scrapper.py \
+ExecStart=/home/pat/ARCTERX/DongKo/scraper.py \
 	--logfile=/home/pat/logs/DongKo.log \
 	--mailTo="pat@mousebrains.com" \
 	--mailSubject="DongKo Scraper" \
