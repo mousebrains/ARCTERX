@@ -44,10 +44,9 @@ grp.add_argument("--executable", type=str, default="tunnel.py",
 parser.add_argument("--force", action="store_true", help="Force writing a new file")
 parser.add_argument("--systemctl", type=str, default="/usr/bin/systemctl",
         help="systemctl executable")
-parser.add_argument("--cp", type=str, default="/usr/bin/cp",
-        help="cp executable")
-parser.add_argument("--sudo", type=str, default="/usr/bin/sudo",
-        help="sudo executable")
+parser.add_argument("--cp", type=str, default="/usr/bin/cp", help="cp executable")
+parser.add_argument("--chmod", type=str, default="/usr/bin/chmod", help="chmod executable")
+parser.add_argument("--sudo", type=str, default="/usr/bin/sudo", help="sudo executable")
 parser.add_argument("--knownHosts", type=str, help="Known host to port dictionary YAML file")
 args = parser.parse_args()
 
@@ -97,12 +96,15 @@ input = re.sub(r"@RESTARTSECONDS@", str(args.restartSeconds), input)
 fn = os.path.join(args.serviceDirectory, f"{args.service}.service")
 
 if not args.force and os.path.exists(fn):
-    with open (fn, "r") as fp:
-        current = barebones(fp.read()) # Current contents
-        proposed = barebones(input) # What we want to write
-        if current == proposed:
-            print("No need to update, identical")
-            sys.exit(0)
+    try:
+        with open (fn, "r") as fp:
+            current = barebones(fp.read()) # Current contents
+            proposed = barebones(input) # What we want to write
+            if current == proposed:
+                print("No need to update, identical")
+                sys.exit(0)
+    except:
+        pass
 
 if not os.path.isdir(wd):
     print("Making", wd)
@@ -114,6 +116,7 @@ with NamedTemporaryFile(mode="w") as fp:
     fp.flush()
     print("Writing to", fn)
     subprocess.run((args.sudo, args.cp, fp.name, fn), shell=False, check=True)
+    subprocess.run((args.sudo, args.chmod, "0644", fn))
 
 print("Forcing reload of daemon")
 subprocess.run((args.sudo, args.systemctl, "daemon-reload"), shell=False, check=True)
