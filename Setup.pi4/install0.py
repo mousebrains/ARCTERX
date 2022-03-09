@@ -8,45 +8,11 @@ from argparse import ArgumentParser
 import socket
 import logging
 import sys
-import subprocess
 import re
 import os
 from tempfile import NamedTemporaryFile
 import sys
-
-def execCmd(cmd:tuple[str], check:bool=False, validReturnCodes:tuple[int]=(0,), 
-        cwd:str=None) -> bool:
-    if cwd is None:
-        logging.info("Executing %s", " ".join(cmd))
-    else:
-        logging.info("CWD=%s, Executing %s", cwd, " ".join(cmd))
-
-    s = subprocess.run(cmd, shell=False, capture_output=True, check=check, cwd=cwd)
-    if s.returncode not in validReturnCodes:
-        logging.error("Error executing %s", " ".join(cmd))
-        if s.stdout:
-            try:
-                logging.error("STDOUT:\n%s", str(s.stdout, "utf-8"))
-            except:
-                logging.error("STDOUT:\n%s", s.stdout.split(b"\n"))
-        if s.stderr:
-            try:
-                logging.error("STDERR:\n%s", str(s.stderr, "utf-8"))
-            except:
-                logging.error("STDERR:\n%s", s.stderr.split(b"\n"))
-        return False
-
-    if s.stdout:
-       try:
-           logging.debug("STDOUT:\n%s", str(s.stdout, "utf-8"))
-       except:
-           logging.debug("STDOUT:\n%s", s.stdout.split(b"\n"))
-    if s.stderr:
-       try:
-           logging.debug("STDERR:\n%s", str(s.stderr, "utf-8"))
-       except:
-           logging.debug("STDERR:\n%s", s.stderr.split(b"\n"))
-    return True
+from ExecuteCommand import execCmd
 
 def shutoffAutoupdates(args:ArgumentParser) -> None:
     fn = "/etc/apt/apt.conf.d/20auto-upgrades"
@@ -99,8 +65,6 @@ def setupSSH(args:ArgumentParser) -> None:
 
 parser = ArgumentParser()
 grp = parser.add_argument_group(description="installation options")
-grp.add_argument("--autoupdate", action="store_true", help="Don't turn off autoupdates")
-grp.add_argument("--noreboot", action="store_true", help="Don't reboot the system at the end")
 grp.add_argument("--gitUser", type=str, default="Pat Welch", help="Git username")
 grp.add_argument("--gitemail", type=str, default="pat@mousebrains.com", help="Git email")
 grp.add_argument("--gitEditor", type=str, default="vim", help="Git editor")
@@ -115,6 +79,13 @@ grp.add_argument("--folderRoot", type=str, default="~/Sync.ARCTERX", help="Sync 
 grp.add_argument("--kbpsSend", type=int, default=25, help="kilobytes/sec to send data")
 grp.add_argument("--kbpsRecv", type=int, default=25, help="kilobytes/sec to recveive data")
 grp.add_argument("--peer", type=str, default="glidervm3", help="syncthing peer")
+
+grp = parser.add_argument_group(description="Flow options")
+grp.add_argument("--noUpgrade", action="store_true",
+        help="Don't do system update/upgrade/autoremove")
+grp.add_argument("--autoupdate", action="store_true", help="Don't turn off autoupdates")
+grp.add_argument("--noreboot", action="store_true", help="Don't reboot the system at the end")
+
 grp = parser.add_argument_group(description="Commands")
 grp.add_argument("--sudo", type=str, default="/usr/bin/sudo", help="Full path to sudo")
 grp.add_argument("--apt", type=str, default="/usr/bin/apt-get", help="Full path to apt-get")
@@ -132,12 +103,14 @@ if args.verbose:
 elif args.debug:
     logging.basicConfig(level=logging.DEBUG)
 
-# System level update, upgrade, and remove old packages
-execCmd((args.sudo, args.apt, "update"))
-execCmd((args.sudo, args.apt, "--yes", "upgrade"))
-execCmd((args.sudo, args.apt, "--yes", "autoremove"))
+if not args.noUpgrade: # System level update, upgrade, and remove old packages
+    execCmd((args.sudo, args.apt, "update"))
+    execCmd((args.sudo, args.apt, "--yes", "upgrade"))
+    execCmd((args.sudo, args.apt, "--yes", "autoremove"))
 
 shutoffAutoupdates(args) # Turn off auto updates
+
+sys.exit(1)
 
 # Set up git global variables
 for key, value in {"user.name": args.gitUser, "user.email": args.gitemail,
