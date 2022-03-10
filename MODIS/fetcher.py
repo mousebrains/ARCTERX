@@ -41,11 +41,13 @@ parser.add_argument("--MODIS", type=str, action="append",
 parser.add_argument("--data", type=str, default="data", help="Where to store full data files")
 parser.add_argument("--pruned", type=str, default="~/Sync.ARCTERX/Shore/MODIS",
         help="Where to store pruned data files")
-parser.add_argument("--latMin", type=float, default=0, help="Minimum latitude")
-parser.add_argument("--latMax", type=float, default=25, help="Maximum latitude")
-parser.add_argument("--lonMin", type=float, default=120, help="Minimum longitude")
-parser.add_argument("--lonMax", type=float, default=155, help="Maximum longitude")
-parser.add_argument("--ndays", type=int, default=1, help="Number of days back to fetch data for")
+parser.add_argument("--latMin", type=float, default=10, help="Minimum latitude")
+parser.add_argument("--latMax", type=float, default=23, help="Maximum latitude")
+parser.add_argument("--lonMin", type=float, default=135, help="Minimum longitude")
+parser.add_argument("--lonMax", type=float, default=150, help="Maximum longitude")
+grp = parser.add_argument_group(description="Date calculation options")
+grp.add_argument("--threshold", type=int, default=7, help="Trip over time in UTC to next day")
+grp.add_argument("--ndays", type=int, default=1, help="Number of days back to fetch data for")
 grp = parser.add_argument_group(description="Logging options")
 grp.add_argument("--verbose", action="store_true", help="Enable INFO messages")
 grp.add_argument("--debug", action="store_true", help="Enable INFO+DEBUG messages")
@@ -65,9 +67,9 @@ if args.filename is None:
             )
 
 if args.MODIS is None:
-    args.MODIS = (
+    args.MODIS = [
             "AQUA_MODIS.{}.L3m.DAY.NSST.sst.4km.NRT.nc",
-            )
+            ]
 
 args.data = os.path.abspath(os.path.expanduser(args.data))
 args.pruned = os.path.abspath(os.path.expanduser(args.pruned))
@@ -75,9 +77,14 @@ args.pruned = os.path.abspath(os.path.expanduser(args.pruned))
 os.makedirs(args.data, mode=0o776, exist_ok=True)
 os.makedirs(args.pruned, mode=0o776, exist_ok=True)
   
+now = datetime.datetime.now(tz=datetime.timezone.utc)
+if now.hour < args.threshold:
+    now -= datetime.timedelta(days=1)
+now = now.date()
+
 toPrune = set()
 for n in range(args.ndays):
-    today = datetime.date.today() - datetime.timedelta(days=n)
+    today = now - datetime.timedelta(days=n)
     yesterday = today - datetime.timedelta(days=1)
     year = today.strftime("%Y")
     doy = yesterday.strftime("%j")
