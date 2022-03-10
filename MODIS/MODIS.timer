@@ -1,0 +1,29 @@
+#
+# Download NASA MODIS data
+#
+# N.B. This has two components, MODIS.service and MODIS.timer
+#
+# sudo cp MODIS.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable MODIS.timer MODIS.service
+# sudo systemctl start MODIS.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers MODIS
+# 
+# Mar-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Download MODIS data from NASA
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# The data appears to be updated by 0700UTC
+OnCalendar=*-*-* 7:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

@@ -1,0 +1,17 @@
+latMin:  10 # Minimum latitude for pruned data
+latMax:  23 # Maximum latitude for pruned data
+lonMin: 135 # Minimum longitude for pruned data
+lonMax: 150 # Maximum longitude for pruned data
+
+threshold: 7 # UTC time of day to switch date
+
+urlPrefix: https://oceandata.sci.gsfc.nasa.gov/ob/getfile/ # Prefix for constructing URL
+
+YearDOY: # Substitute year and doy to build filename to fetch
+  - A{}{}.L3m_DAY_CHL_chlor_a_4km.nc # Chlorophyll A
+  - A{}{}.L3m_DAY_CHL_chl_ocx_4km.nc # Chlorophyll A processed using OCX algorithm
+  - A{}{}.L3m_DAY_FLH_ipar_4km.nc # Fluorescence
+  - A{}{}.L3m_DAY_FLH_nflh_4km.nc # Fluorescence
+
+YYYYMMDD: # Substutitute YYYYMMDD to build filename to fetch
+  - AQUA_MODIS.{}.L3m.DAY.NSST.sst.4km.NRT.nc # Sea Surface Temperature

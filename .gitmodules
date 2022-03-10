@@ -13,3 +13,6 @@
 [submodule "AVISO"]
 	path = AVISO
 	url = git@github.com:mousebrains/AVISO.git
+[submodule "MODIS/TPWUtils"]
+	path = MODIS/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git

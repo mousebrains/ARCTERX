@@ -1,0 +1,31 @@
+#
+# Fetch MODIS data from NASA
+#
+# N.B. This has two components, MODIS.service and MODIS.timer
+#
+# sudo cp MODIS.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable MODIS.timer MODIS.service
+# sudo systemctl start MODIS.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Download MODIS data from NASA
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/MODIS
+#
+ExecStart=/home/pat/ARCTERX/MODIS/fetcher.py \
+	--logfile=/home/pat/logs/MODIS.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="MODIS Fetcher" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+
