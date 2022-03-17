@@ -1,0 +1,28 @@
+#
+# Grab satellite data for KFC
+#
+# N.B. This has two components, Copernicus.service and Copernicus.timer
+#
+# sudo cp Copernicus.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Copernicus.timer Copernicus.service
+# sudo systemctl start Copernicus.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers Copernicus
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Grab Copernicus data for KFC
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+OnCalendar=*-*-* 7:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

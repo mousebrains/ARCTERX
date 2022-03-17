@@ -1,0 +1,15 @@
+urlLogin: https://cmems-cas.cls.fr/cas/login # Where to authenticate myself
+
+urlPrefixes: # Where to look for datasets
+  - https://nrt.cmems-du.eu/thredds/dodsC # First try and pull from nrt.cmems-du.eu
+  - https://my.cmems-du.eu/thredds/dodsC  # Next try and pull from my.cmems-du.eu
+
+dataSets: # Which datasets to pull
+    # - cnes_obs-sl_glo_phy-mdt_my_0.125deg_P20Y # For KFC
+    # - SST_GLO_SST_L3S_NRT_OBSERVATIONS_010_010 # From Harper
+    - dataset-duacs-nrt-global-merged-allsat-phy-l4
+
+latMin:  10 # Minimum latitude for pruned data
+latMax:  23 # Maximum latitude for pruned data
+lonMin: 135 # Minimum longitude for pruned data
+lonMax: 150 # Maximum longitude for pruned data

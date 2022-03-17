@@ -1,0 +1,31 @@
+#
+# Fetch earthdata satellite data
+#
+# N.B. This has two components, earthdata.service and earthdata.timer
+#
+# sudo cp earthdata.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable earthdata.timer earthdata.service
+# sudo systemctl start earthdata.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=SST data
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/KFC
+#
+ExecStart=/home/pat/ARCTERX/KFC/earthdata.nasa.py \
+	--logfile=/home/pat/logs/earthdata.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="earthdata Data" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

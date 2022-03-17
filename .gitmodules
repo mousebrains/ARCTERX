@@ -16,3 +16,6 @@
 [submodule "MODIS/TPWUtils"]
 	path = MODIS/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
+[submodule "KFC/TPWUtils"]
+	path = KFC/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git

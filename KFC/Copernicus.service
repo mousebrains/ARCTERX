@@ -1,0 +1,31 @@
+#
+# Fetch Copernicus satellite data
+#
+# N.B. This has two components, Copernicus.service and Copernicus.timer
+#
+# sudo cp Copernicus.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Copernicus.timer Copernicus.service
+# sudo systemctl start Copernicus.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=SSHa data
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/KFC
+#
+ExecStart=/home/pat/ARCTERX/KFC/Copernicus.py \
+	--logfile=/home/pat/logs/Copernicus.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="Copernicus Data" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+
