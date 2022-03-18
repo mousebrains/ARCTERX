@@ -94,7 +94,7 @@ class FTPfetch:
         with FTP(host=args.ftpHost, user=username, passwd=password) as ftp:
             ftp.set_pasv(True) # Turn on passive mode
             directory = args.ftpDirectory
-            logger.info("CWD to %s", directory)
+            logger.debug("CWD to %s", directory)
             ftp.cwd(directory)
             for fn in ftp.nlst():
                 if not re.fullmatch(args.ftpRegEx, fn): 
