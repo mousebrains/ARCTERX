@@ -1,0 +1,31 @@
+#
+# Fetch new information SIO WaveGlider data
+#
+# N.B. This has two components, WaveGlider.service and WaveGlider.timer
+#
+# sudo cp WaveGlider.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable WaveGlider.timer WaveGlider.service
+# sudo systemctl start WaveGlider.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=SIO WaveGlider data
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/WaveGlider
+#
+ExecStart=/home/pat/ARCTERX/WaveGlider/fetcher.py \
+	--logfile=/home/pat/logs/WaveGlider.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="WaveGlider Fetcher" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,29 @@
+#
+# Scrape SIO's WaveGlider data
+#
+# N.B. This has two components, WaveGlider.service and WaveGlider.timer
+#
+# sudo cp WaveGlider.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable WaveGlider.timer WaveGlider.service
+# sudo systemctl start WaveGlider.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers WaveGlider
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Grab SIO WaveGlider data
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# Files are updated every 15 minutes, so run at 1, 16, 31, and 46 minutes of each hour
+OnCalendar=*-*-* *:1/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
