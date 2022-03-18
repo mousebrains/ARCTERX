@@ -9,12 +9,14 @@ from argparse import ArgumentParser
 from ftplib import FTP
 import json
 import os
+import re
 
 class RetrieveFile:
     def __init__(self, fn:str, offset:int) -> None:
         self.__filename = fn
         self.__fp = None
-        self.__size = 0 if offset is None else offset
+        self.__offset = 0 if offset is None else offset
+        self.size = 0
 
     def __del__(self):
         if self.__fp is not None:
@@ -23,11 +25,12 @@ class RetrieveFile:
 
     def block(self, data:bytes) -> None:
         if self.__fp is None:
-            if self.__size: # Appending
+            if self.__offset: # Appending
                 self.__fp = open(self.__filename, "ab")
             else: # Not appending
                 self.__fp = open(self.__filename, "wb")
         self.__fp.write(data)
+        self.size += len(data)
 
 class FTPfetch:
     def __init__(self, args:ArgumentParser) -> None:
@@ -52,6 +55,9 @@ class FTPfetch:
                 help="Fully qualified hostname to connect to")
         grp.add_argument("--ftpCredentials", type=str, default="~/.config/SIO/.sio.credentials",
                 help="Name of JSON file containinng the SIO credentials")
+        grp.add_argument("--ftpRegEx", type=str,
+                default=r"^wg_.+_positions.txt$",
+                help="Regular expression files must match to be fetched")
 
     def __getCredentials(self) -> tuple[str, str]:
         fn = self.__args.ftpCredentials
@@ -90,8 +96,10 @@ class FTPfetch:
             directory = args.ftpDirectory
             logger.info("CWD to %s", directory)
             ftp.cwd(directory)
-            files = set(ftp.nlst())
-            for fn in sorted(files): # Fetch the files, if needed
+            for fn in ftp.nlst():
+                if not re.fullmatch(args.ftpRegEx, fn): 
+                    logger.info("Rejecting %s", fn)
+                    continue
                 offset = None
                 fnOut = os.path.join(args.ftpSaveTo, fn)
                 offset = 0
@@ -101,6 +109,8 @@ class FTPfetch:
 
                 obj = RetrieveFile(fnOut, offset)
                 ftp.retrbinary(f"RETR {fn}", obj.block, blocksize=65536, rest=offset)
+                logger.info("Fetched %s bytes from %s starting at %s", obj.size, fn, offset)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
