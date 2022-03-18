@@ -56,7 +56,7 @@ class FTPfetch:
         grp.add_argument("--ftpCredentials", type=str, default="~/.config/SIO/.sio.credentials",
                 help="Name of JSON file containinng the SIO credentials")
         grp.add_argument("--ftpRegEx", type=str,
-                default=r"^wg_.+_positions.txt$",
+                default=r"^wg_\d+_positions.txt$",
                 help="Regular expression files must match to be fetched")
 
     def __getCredentials(self) -> tuple[str, str]:
