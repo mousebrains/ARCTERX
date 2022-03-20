@@ -1,0 +1,6 @@
+hostname: nrt.cmems-du.eu
+directory: /Core/SEALEVEL_GLO_PHY_L3_NRT_OBSERVATIONS_008_044
+latMin: 5
+latMax: 25
+lonMin: 130
+lonMax: 150
