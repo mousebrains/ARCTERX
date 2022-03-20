@@ -22,3 +22,6 @@
 [submodule "WaveGlider/TPWUtils"]
 	path = WaveGlider/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
+[submodule "Copernicus/TPWUtils"]
+	path = Copernicus/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git
