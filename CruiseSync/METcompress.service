@@ -1,0 +1,31 @@
+#
+# Append to a compressed file for sending to shore
+#
+# N.B. This has two components, METcompress.service and METcompress.timer
+#
+# sudo cp METcompress.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable METcompress.timer METcompress.service
+# sudo systemctl start METcompress.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Compress MET files
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/CruiseSync
+#
+ExecStart=/home/pat/ARCTERX/CruiseSync/compressor.py \
+	--logfile=/home/pat/logs/METcompressor.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="MET compressor" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

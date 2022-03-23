@@ -28,3 +28,6 @@
 [submodule "Slocum/TPWUtils"]
 	path = Slocum/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
+[submodule "CruiseSync/TPWUtils"]
+	path = CruiseSync/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git
