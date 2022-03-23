@@ -25,3 +25,6 @@
 [submodule "Copernicus/TPWUtils"]
 	path = Copernicus/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
+[submodule "Slocum/TPWUtils"]
+	path = Slocum/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git

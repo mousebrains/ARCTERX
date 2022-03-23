@@ -1,0 +1,29 @@
+#
+# Scrape Slocum position data
+#
+# N.B. This has two components, Slocum.service and Slocum.timer
+#
+# sudo cp Slocum.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Slocum.timer Slocum.service
+# sudo systemctl start Slocum.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers Slocum
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Scrap Slocum position information
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# the model run is typically run by 07:00 CST
+OnCalendar=*-*-* *:2/15
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

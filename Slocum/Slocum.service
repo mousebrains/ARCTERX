@@ -1,0 +1,31 @@
+#
+# Fetch new position information for the Slocum glider
+#
+# N.B. This has two components, Slocum.service and Slocum.timer
+#
+# sudo cp Slocum.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Slocum.timer Slocum.service
+# sudo systemctl start Slocum.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Slocum position harvester
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Slocum
+#
+ExecStart=/home/pat/ARCTERX/Slocum/fetcher.py \
+	--logfile=/home/pat/logs/Slocum.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="Slocum Scraper" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+
