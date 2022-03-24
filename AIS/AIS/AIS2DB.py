@@ -65,7 +65,8 @@ class AIS2DB(Thread):
         # This should not be needed due to the primary key is this index
         # sql1 = f"CREATE INDEX IF NOT EXISTS {tbl}_index ON {tbl} (mmsi,key,t);"
 
-        logging.debug("Creating table:\n%s\n%s", sql0, sql1)
+        # logging.debug("Creating table:\n%s\n%s", sql0, sql1)
+        logging.debug("Creating table:\n%s\n%s", sql0)
         db.cursor().execute("BEGIN;")
         db.cursor().execute(sql0)
         # db.cursor().execute(sql1)
