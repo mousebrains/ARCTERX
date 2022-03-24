@@ -16,13 +16,13 @@ Description=Collect AIS datagrams
 [Service]
 # Type=simple # Default
 User=pat
-WorkingDirectory=/home/pat/
+WorkingDirectory=/home/pat/logs
 #
-ExecStart=/home/pat/Revelle/AIS/receiver.py \
-    --logfile=/home/pat/logs/AIS.log \
-    --r2dbSQLite3=/home/pat/Processed/AIS/ais.raw.db \
-    --ais2udp=127.0.0.1:9999 \
-    --inputUDP=888
+ExecStart=/home/pat/ARCTERX/AIS/receiver.py \
+    --logfile=AIS.log \
+    --r2dbSQLite3=ais.raw.db \
+    --ais2dbSQLite3=ais.db \
+    --inputUDP=8982
 	
 RestartSec=60
 Restart=always
