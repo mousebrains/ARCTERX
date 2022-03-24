@@ -33,7 +33,8 @@ class RetrieveFile:
         self.size += len(data)
 
 class FTPfetch:
-    def __init__(self, args:ArgumentParser) -> None:
+    def __init__(self, directory:str, args:ArgumentParser) -> None:
+        self.__directory = directory
         self.__args = args
         self.__files = set()
         self.__Fetch() # Fetch the files if needed
@@ -44,8 +45,7 @@ class FTPfetch:
         grp.add_argument("--nofetch", action="store_true", help="Don't fetch new files")
         grp.add_argument("--noprogress", action="store_true",
                 help="Don't display download progress")
-        grp.add_argument("--ftpDirectory", type=str,
-                default="pub/CORDC/outgoing/arcterx",
+        grp.add_argument("--ftpDirectory", type=str, action="append",
                 help="Directory prefix to change to")
         grp.add_argument("--ftpSaveTo", type=str, default="~/Sync.ARCTERX/Shore/WaveGlider",
                 help="Directory to save FTP files to")
@@ -56,11 +56,11 @@ class FTPfetch:
         grp.add_argument("--ftpCredentials", type=str, default="~/.config/SIO/.sio.credentials",
                 help="Name of JSON file containinng the SIO credentials")
         grp.add_argument("--ftpRegEx", type=str,
-                default=r"^wg_\d+_positions.txt$",
+                default=r"wg_\d+_(targetwp|positions)[.]txt$",
                 help="Regular expression files must match to be fetched")
 
     def __getCredentials(self) -> tuple[str, str]:
-        fn = self.__args.ftpCredentials
+        fn = os.path.abspath(os.path.expanduser(self.__args.ftpCredentials))
         try:
             with open(fn, "r") as fp:
                 info = json.load(fp)
@@ -93,7 +93,7 @@ class FTPfetch:
 
         with FTP(host=args.ftpHost, user=username, passwd=password) as ftp:
             ftp.set_pasv(True) # Turn on passive mode
-            directory = args.ftpDirectory
+            directory = self.__directory
             logger.debug("CWD to %s", directory)
             ftp.cwd(directory)
             for fn in ftp.nlst():
@@ -122,4 +122,11 @@ if __name__ == "__main__":
 
     logger = Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s", logLevel="INFO")
 
-    a = FTPfetch(args)
+    if args.ftpDirectory is None:
+        args.ftpDirectory = (
+                "pub/CORDC/outgoing/arcterx",
+                "pub/CORDC/outgoing/arcterx/wgms",
+                )
+
+    for name in args.ftpDirectory:
+        a = FTPfetch(name, args)
