@@ -1,0 +1,31 @@
+#
+# copy ADCP files
+#
+# N.B. This has two components, SyncADCP.service and SyncADCP.timer
+#
+# sudo cp SyncADCP.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SyncADCP.timer SyncADCP.service
+# sudo systemctl start SyncADCP.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Sync ADCP files
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/CruiseSync
+#
+ExecStart=/home/pat/ARCTERX/CruiseSync/syncADCP.py \
+	--logfile=/home/pat/logs/SyncADCP.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="Sync ADCP" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

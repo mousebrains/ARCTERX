@@ -1,0 +1,29 @@
+#
+# Sync ADCP files
+#
+# N.B. This has two components, SyncADCP.service and SyncADCP.timer
+#
+# sudo cp SyncADCP.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SyncADCP.timer SyncADCP.service
+# sudo systemctl start SyncADCP.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers SyncADCP
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Sync ASDCP files for sending to shore
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# the model run is typically run by 07:00 CST
+OnCalendar=*-*-* *:7
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
