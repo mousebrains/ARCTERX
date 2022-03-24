@@ -19,8 +19,8 @@ class Decrypter(Thread):
         Thread.__init__(self, "Decrypt", args)
         self.__qInput = queue.Queue()
         self.__qOutput = set()
-        self.__reNEMA = re.compile(b"\s*!(AIVD[MO],\d+,\d+,\d?,\w?,.*,[0-5])[*]([0-9A-Za-z]{2})\s*")
-        self.__reIgnore = re.compile(b"[$](PFEC|AI(ALR|ABK|TXT)),")
+        self.__reNEMA = re.compile(b".*!(AIVD[MO],\d+,\d+,\d?,\w?,.*,[0-5])[*]([0-9A-Za-z]{2})\s*")
+        self.__reIgnore = re.compile(b".*[$](PFEC|AI(ALR|ABK|TXT)),")
         self.__partials = {} # For accumulating multipart messages
 
     @staticmethod
