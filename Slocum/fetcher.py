@@ -20,7 +20,9 @@ def createTable(cur) -> None:
     sql+= " lat REAL,\n"
     sql+= " lon REAL,\n"
     sql+= " wptLat REAL,\n"
-    sql+= " wptLon REAL\n"
+    sql+= " wptLon REAL,\n"
+    sql+= " u REAL,\n"
+    sql+= " v REAL\n"
     sql+= ");\n"
     cur.execute(sql)
 
@@ -56,7 +58,8 @@ with requests.get(args.url, auth=(username, codigo), verify=False) as r:
         sys.exit(1)
     for line in r.text.split("\n"):
         fields = line.split()
-        if len(fields) < 5:
+        print(fields)
+        if len(fields) < 13:
             continue
         try:
             lat0 = float(fields[0])
@@ -64,7 +67,9 @@ with requests.get(args.url, auth=(username, codigo), verify=False) as r:
             t = datetime.strptime(fields[2], "%Y-%m-%dT%H:%M:%SZ")
             lat1 = float(fields[3])
             lon1 = float(fields[4])
-            rows.append((t, lat0, lon0, lat1, lon1))
+            u = float(fields[11])
+            v = float(fields[12])
+            rows.append((t, lat0, lon0, lat1, lon1, u, v))
         except Exception as e:
             logger.exception("While convertings %s", line)
 
@@ -74,11 +79,11 @@ with sqlite3.connect(args.db) as db:
     cur = db.cursor()
     cur.execute("BEGIN TRANSACTION;")
     createTable(cur)
-    sql = "INSERT OR REPLACE INTO position values(?,?,?,?,?);"
+    sql = "INSERT OR REPLACE INTO position values(?,?,?,?,?,?,?);"
     for row in rows:
         cur.execute(sql, row)
     cur.execute("COMMIT;")
     with open(args.csv, "w") as fp:
-        fp.write("t,lat,lon,wptLat,wptLon\n")
-        for row in cur.execute("SELECT * FROM position ORDER BY t DESC LIMIT 10;"):
-            fp.write(f"{row[0]},{row[1]},{row[2]},{row[3]},{row[4]}\n")
+        fp.write("t,lat,lon,wptLat,wptLon,u,v\n")
+        for row in cur.execute("SELECT * FROM position ORDER BY t DESC LIMIT 20;"):
+            fp.write(f"{row[0]},{row[1]},{row[2]},{row[3]},{row[4]},{row[5]},{row[6]}\n")
