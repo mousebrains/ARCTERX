@@ -18,12 +18,12 @@ Description=Drifter data fetch
 # Launced by timer
 Type=oneshot
 User=pat
-WorkingDirectory=/home/pat/ARCTERX/Drifter
+WorkingDirectory=/home/pat/ARCTERX/Drifters
 #
-ExecStart=/home/pat/ARCTERX/Drifter/fetcher.py \
-	--logfile=/home/pat/logs/Drifter.log \
+ExecStart=/home/pat/ARCTERX/Drifters/fetcher.py \
+	--logfile=/home/pat/logs/Drifters.log \
 	--mailTo="pat@mousebrains.com" \
-	--mailSubject="Drifter" \
+	--mailSubject="Drifters" \
 	--verbose
         
 [Install]
