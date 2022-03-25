@@ -1,0 +1,29 @@
+#
+# Fetch drifter positions
+#
+# N.B. This has two components, Drifter.service and Drifter.timer
+#
+# sudo cp Drifter.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Drifter.timer Drifter.service
+# sudo systemctl start Drifter.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers Drifter
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Fetch drifter fixes
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# the model run is typically run by 07:00 CST
+OnCalendar=*-*-* *:37
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

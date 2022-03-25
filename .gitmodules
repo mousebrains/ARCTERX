@@ -31,3 +31,6 @@
 [submodule "CruiseSync/TPWUtils"]
 	path = CruiseSync/TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
+[submodule "Drifters/TPWUtils"]
+	path = Drifters/TPWUtils
+	url = git@github.com:mousebrains/TPWUtils.git
