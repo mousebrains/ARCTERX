@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Install a service for the WaveGlider scrapper 
+# Install a service for the KFC's data harvester
 #
 # Feb-2022, Pat Welch, pat@mousebrains.com
 
@@ -11,8 +11,8 @@ import os
 import sys
 
 parser = ArgumentParser()
-parser.add_argument("--service", type=str, default="WaveGlider.service", help="Service file")
-parser.add_argument("--timer", type=str, default="WaveGlider.timer", help="Timer file")
+parser.add_argument("--service", type=str, action="append", help="Service file(s)")
+parser.add_argument("--timer", type=str, action="append", help="Timer file(s)")
 parser.add_argument("--serviceDirectory", type=str, default="/etc/systemd/system",
         help="Where to copy service and timer files to")
 parser.add_argument("--systemctl", type=str, default="/usr/bin/systemctl",
@@ -23,32 +23,45 @@ parser.add_argument("--sudo", type=str, default="/usr/bin/sudo",
         help="sudo executable")
 args = parser.parse_args()
 
+if args.service is None:
+    args.service = ["WaveGlider.service", "WGais.service"]
+
+if args.timer is None:
+    args.timer = ["WaveGlider.timer"]
+
 root = os.path.abspath(os.path.expanduser(args.serviceDirectory))
 
-fn = os.path.join(root, os.path.basename(args.service))
-print("Writing to", fn)
-subprocess.run((args.sudo, args.cp, args.service, fn), shell=False, check=True)
+for service in args.service:
+    fn = os.path.join(root, os.path.basename(service))
+    print("Writing to", fn)
+    subprocess.run((args.sudo, args.cp, service, fn), shell=False, check=True)
 
-fn = os.path.join(root, os.path.basename(args.timer))
-print("Writing to", fn)
-subprocess.run((args.sudo, args.cp, args.timer, fn), shell=False, check=True)
+for timer in args.timer:
+    fn = os.path.join(root, os.path.basename(timer))
+    print("Writing to", fn)
+    subprocess.run((args.sudo, args.cp, timer, fn), shell=False, check=True)
 
 print("Forcing reload of daemon")
 subprocess.run((args.sudo, args.systemctl, "daemon-reload"), shell=False, check=True)
 
-print(f"Enabling {args.service}")
-subprocess.run((args.sudo, args.systemctl, "enable", args.service), shell=False, check=True)
-
-print(f"Enabling {args.timer}")
-subprocess.run((args.sudo, args.systemctl, "enable", args.timer), shell=False, check=True)
+print(f"Enabling {args.service} {args.timer}")
+cmd = [args.sudo, args.systemctl, "enable"]
+cmd.extend(args.service)
+cmd.extend(args.timer)
+subprocess.run(cmd, shell=False, check=True)
 
 print(f"Starting {args.timer}")
-subprocess.run((args.sudo, args.systemctl, "start", args.timer), shell=False, check=True)
+cmd = [args.sudo, args.systemctl, "start"]
+cmd.extend(args.timer)
+subprocess.run(cmd, shell=False, check=True)
 
 print(f"Status {args.service} and {args.timer}")
-s = subprocess.run((args.sudo, args.systemctl, "--no-pager", "status", args.service, args.timer),
-        shell=False, check=False)
+cmd = [args.sudo, args.systemctl, "--no-pager", "status"]
+cmd.extend(args.service)
+cmd.extend(args.timer)
+subprocess.run(cmd, shell=False, check=False)
 
 print(f"List timer {args.timer}")
-s = subprocess.run((args.sudo, args.systemctl, "--no-pager", "list-timers", args.timer),
-        shell=False, check=True)
+cmd = [args.sudo, args.systemctl, "--no-pager", "list-timers"]
+cmd.extend(args.timer)
+subprocess.run(cmd, shell=False, check=True)

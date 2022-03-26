@@ -1,0 +1,33 @@
+#
+# Fetch new AIS information SIO WaveGlider data
+#
+# N.B. This has two components, WGais.service and WGais.timer
+#
+# sudo cp WaveGlider.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable WGais.timer WGais.service
+# sudo systemctl start WGais.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=SIO WaveGlider AIS data
+
+[Service]
+# Type=simple # Default
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/WaveGlider
+#
+ExecStart=/home/pat/ARCTERX/WaveGlider/AIS.py \
+	--logfile=/home/pat/logs/WGais.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="WaveGlider Fetcher" \
+	--verbose
+       
+RestartSec=60
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

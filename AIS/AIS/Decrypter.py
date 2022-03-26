@@ -104,11 +104,15 @@ class Decrypter(Thread):
     def __agePartials(self, t:float) -> None: # Maximum age to avoid memory leaks
         info = self.__partials # Partial message information
 
+        toDrop = set()
         for ident in info:
             tAge = info[ident]["age"]
             # Give 1 minute for partial messages to accumulate
             if tAge > (t - 60): continue
             logging.warning("Aged out %s", ident)
+            toDrop.add(ident)
+
+        for ident in toDrop:
             del info[ident]
 
     def __accumulate(self, t, fields:list) -> bool:
