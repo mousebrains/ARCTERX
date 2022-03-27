@@ -14,4 +14,5 @@ YearDOY: # Substitute year and doy to build filename to fetch
   - A{}{}.L3m_DAY_FLH_nflh_4km.nc # Fluorescence
 
 YYYYMMDD: # Substutitute YYYYMMDD to build filename to fetch
-  - AQUA_MODIS.{}.L3m.DAY.NSST.sst.4km.NRT.nc # Sea Surface Temperature
+  - AQUA_MODIS.{}.L3m.DAY.NSST.sst.4km.NRT.nc # Sea Surface Temperature during daytime
+  - AQUA_MODIS.{}.L3m.DAY.SST4.sst4.4km.NRT.nc # Sea Surface Temperature during nighttime
