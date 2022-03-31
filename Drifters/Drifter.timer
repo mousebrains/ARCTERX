@@ -21,7 +21,7 @@ Description=Fetch drifter fixes
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
 # the model run is typically run by 07:00 CST
-OnCalendar=*-*-* *:37
+OnCalendar=*-*-* 0:37
 Persistent=true
 
 [Install]
