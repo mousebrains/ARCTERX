@@ -22,7 +22,8 @@ ExecStart=/home/pat/ARCTERX/AIS/receiver.py \
     --logfile=AIS.log \
     --r2dbSQLite3=ais.raw.db \
     --ais2dbSQLite3=ais.db \
-    --inputUDP=8982
+    --inputUDP=8982 \
+    --verbose
 	
 RestartSec=60
 Restart=always
