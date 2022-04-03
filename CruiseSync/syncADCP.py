@@ -15,7 +15,7 @@ Logger.addArgs(parser)
 parser.add_argument("--output", type=str, default="~/Sync.ARCTERX/Ship/ADCP", 
         help="Where ADCP files are copied to")
 parser.add_argument("--ADCP", type=str,
-        default="/mnt/cruise/RR2202/data/adcp/RR2202/proc/os150nb/contour",
+        default="/mnt/cruise/RR2203/data/adcp/RR2203/proc/os150nb/contour",
         help="Where UH ADCP files are")
 parser.add_argument("--files", type=str, action="append", help="Filenames to copy if they exist")
 args = parser.parse_args()
