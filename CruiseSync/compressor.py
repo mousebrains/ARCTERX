@@ -18,7 +18,7 @@ parser = ArgumentParser()
 Logger.addArgs(parser)
 parser.add_argument("--output", type=str, default="~/Sync.ARCTERX/Ship/MET", 
         help="Where pruned output files go")
-parser.add_argument("--met", type=str, default="/mnt/cruise/RR2202/data/met/data",
+parser.add_argument("--met", type=str, default="/mnt/cruise/RR2203/data/met/data",
         help="Where *.MET files are located")
 parser.add_argument("--extension", type=str, default="MET", help="File extension to look for")
 parser.add_argument("--db", type=str, default="data/MET.db",

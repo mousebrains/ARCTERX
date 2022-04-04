@@ -20,7 +20,7 @@ Description=Compress MET files for sending to shore
 
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
-# the model run is typically run by 07:00 CST
+# Push compressed MET data once an hour
 OnCalendar=*-*-* *:3
 Persistent=true
 
