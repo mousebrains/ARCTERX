@@ -1,0 +1,31 @@
+#
+# Fetch new information UW SeaGlider data
+#
+# N.B. This has two components, SeaGlider.service and SeaGlider.timer
+#
+# sudo cp SeaGlider.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SeaGlider.timer SeaGlider.service
+# sudo systemctl start SeaGlider.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=UW SeaGlider data
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/WaveGlider
+#
+ExecStart=/home/pat/ARCTERX/WaveGlider/sgFetch.py \
+	--logfile=/home/pat/logs/sgfetch.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="sgFetch Fetcher" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

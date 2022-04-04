@@ -1,0 +1,29 @@
+#
+# Scrape UW's SG data
+#
+# N.B. This has two components, SeaGlider.service and SeaGlider.timer
+#
+# sudo cp SeaGlider.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SeaGlider.timer SeaGlider.service
+# sudo systemctl start SeaGlider.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers SeaGlider
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Grab UW's SeaGlider data
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# Files are updated when the SeaGlider survaces, so check every 10 minutes
+OnCalendar=*-*-* *:2/10
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
