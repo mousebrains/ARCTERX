@@ -124,7 +124,7 @@ with sqlite3.connect(args.db) as db: # Get the last time stored in the database
     cnt = 0
     with open(fn, mode) as fp:
         if mode == "w":
-            fp.write("Platform-ID,Timestamp(UTC),GPS-Latitude(deg),GPS-Longitude(deg),SST(degC),SLP(mB) Battery(volts),Drogue (cnts)\n")
+            fp.write("Platform-ID,Timestamp(UTC),GPS-Latitude(deg),GPS-Longitude(deg),SST(degC),SLP(mB),Battery(volts),Drogue (cnts)\n")
         for row in cur.execute(sql):
             cnt += 1
             fp.write(",".join(map(str, row)) + "\n")
