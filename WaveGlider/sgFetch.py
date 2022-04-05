@@ -8,6 +8,7 @@ from TPWUtils import Logger
 from argparse import ArgumentParser
 from Credentials import getCredentials
 import datetime
+import numpy as np
 import pandas as pd
 import xarray as xr
 import requests
@@ -25,6 +26,7 @@ parser.add_argument("--credentials", type=str,  default="~/.config/SG/.credentia
 parser.add_argument("--csv", type=str,
         default="~/Sync.ARCTERX/Shore/WaveGlider/sg_526_positions.csv",
         help="Output CSV filename")
+parser.add_argument("--nc", type=str, help="Output NetCDF filename")
 args = parser.parse_args()
 
 logger = Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s", logLevel="INFO")
@@ -37,6 +39,10 @@ with requests.get(args.url, auth=getCredentials(args.credentials)) as r:
     if r.status_code != 200:
         logger.warning("Error fetching %s\n%s", args.url, args.text)
         sys.exit(1)
+
+    if args.nc: # Save the NetCDF file
+        with open(args.nc, "wb") as fp: fp.write(r.content)
+
     with NamedTemporaryFile() as fp:
         fp.write(r.content)
         fp.flush()
@@ -55,4 +61,7 @@ with requests.get(args.url, auth=getCredentials(args.credentials)) as r:
                 csv = csv.append(pd.read_csv(args.csv))
                 csv = csv.drop_duplicates(subset="t")
                 csv = csv.sort_values("t")
+            csv = csv[np.logical_and(csv.t > "2022-03-01 00:00:00", csv.t < "2022-4-15 00:00:00")]
+            csv = csv[np.logical_and(csv.lat > 12, csv.lat < 21)]
+            csv = csv[np.logical_and(csv.lon > 140, csv.lon < 150)]
             csv.to_csv(args.csv, index=False)
