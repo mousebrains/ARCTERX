@@ -56,7 +56,7 @@ class FTPfetch:
         grp.add_argument("--ftpCredentials", type=str, default="~/.config/SIO/.sio.credentials",
                 help="Name of JSON file containinng the SIO credentials")
         grp.add_argument("--ftpRegEx", type=str,
-                default=r"[sw]g_\d+_(targetwp|positions|(wave|mets)_\d+-\d+)[.](txt|csv)$",
+                default=r"wg_\d+_(targetwp|positions|positions_last_24h|(wave|mets)_\d+-\d+)[.](txt|csv)$",
                 help="Regular expression files must match to be fetched")
 
     def __getCredentials(self) -> tuple[str, str]:
@@ -103,7 +103,7 @@ class FTPfetch:
                 offset = None
                 fnOut = os.path.join(args.ftpSaveTo, fn)
                 offset = 0
-                if os.path.exists(fnOut):
+                if os.path.exists(fnOut) and not re.search(r"_last_24h", fnOut):
                     info = os.stat(fnOut)
                     offset = info.st_size
 
