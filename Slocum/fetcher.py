@@ -8,6 +8,7 @@ from TPWUtils import Logger
 from argparse import ArgumentParser
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import pandas as pd
 from Credentials import getCredentials
 import os
 import sys
@@ -37,6 +38,7 @@ parser.add_argument("--db", type=str, default="data/pos.db",
         help="Where to store the output database")
 parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/Slocum/pos.csv",
         help="Where to store the csv")
+parser.add_argument("--content", type=str, help="Where to save request content")
 args = parser.parse_args()
 
 logger = Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
@@ -56,9 +58,10 @@ with requests.get(args.url, auth=(username, codigo), verify=False) as r:
     if r.status_code != 200:
         logger.error("Fetching %s, %s\n%s", r.url, r.status_code, r.content)
         sys.exit(1)
+    if args.content:
+        with open(args.content, "wb") as fp: fp.write(r.content)
     for line in r.text.split("\n"):
         fields = line.split()
-        print(fields)
         if len(fields) < 13:
             continue
         try:
@@ -85,5 +88,5 @@ with sqlite3.connect(args.db) as db:
     cur.execute("COMMIT;")
     with open(args.csv, "w") as fp:
         fp.write("t,lat,lon,wptLat,wptLon,u,v\n")
-        for row in cur.execute("SELECT * FROM position ORDER BY t DESC LIMIT 20;"):
+        for row in cur.execute("SELECT * FROM position ORDER BY t;"):
             fp.write(f"{row[0]},{row[1]},{row[2]},{row[3]},{row[4]},{row[5]},{row[6]}\n")
