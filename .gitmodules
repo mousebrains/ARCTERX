@@ -1,36 +1,9 @@
-[submodule "AIS/TPWUtils"]
-	path = AIS/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "SSHTunnel/TPWUtils"]
-	path = SSHTunnel/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
 [submodule "Isobaths"]
 	path = Isobaths
 	url = git@github.com:mousebrains/Isobaths.git
-[submodule "DongKo/TPWUtils"]
-	path = DongKo/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
 [submodule "AVISO"]
 	path = AVISO
 	url = git@github.com:mousebrains/AVISO.git
-[submodule "MODIS/TPWUtils"]
-	path = MODIS/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "KFC/TPWUtils"]
-	path = KFC/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "WaveGlider/TPWUtils"]
-	path = WaveGlider/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "Copernicus/TPWUtils"]
-	path = Copernicus/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "Slocum/TPWUtils"]
-	path = Slocum/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "CruiseSync/TPWUtils"]
-	path = CruiseSync/TPWUtils
-	url = git@github.com:mousebrains/TPWUtils.git
-[submodule "Drifters/TPWUtils"]
-	path = Drifters/TPWUtils
+[submodule "TPWUtils"]
+	path = TPWUtils
 	url = git@github.com:mousebrains/TPWUtils.git
