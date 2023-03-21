@@ -22,37 +22,37 @@
 15. Clone the git repository `git clone --recurse-submodules git@github.com:mousebrains/ARCTERX.git`
 16. `cd ARCTERX/Setup.pi4`
 17. `install0.py --verbose` This will do the following:
-  -- `sudo apt update`
-  -- `sudo apt upgrade`
-  -- `sudo apt autoremove`
-  -- Disable autoupgrades
-  -- `git config --global user.name "Pat Welch"`
-  -- `git config --global user.email pat@mousebrains.com`
-  -- `git config --global core.editor vim`
-  -- `git config --global pull.rebase false`
-  -- `git config --global submodule.recurse true`
-  -- `git config --global diff.submodule log`
-  -- `git config --global status.submodulesummary 1`
-  -- `git config --global push.recurseSubmodules on-demand`
-  -- `sudo apt install fail2ban`
-  -- `sudo apt install nginx`
-  -- `sudo apt install php-fpm`
-  -- `sudo apt install samba*`
-  -- `sudo apt install php-xml`
-  -- `sudo apt install php-yaml`
-  -- `sudo apt install python3-pip`
-  -- `sudo apt install python3-pandas`
-  -- `sudo apt install python3-xarray`
-  -- `sudo apt install python3-geopandas`
-  -- `python3 -m pip install --user inotify-simple`
-  -- `python3 -m pip install --user libais`
-  -- Update ~/.ssh/config for vm3
-  -- Create ~/.ssh/id_rsa, if needed
-  -- Add new id_rsa key to vm3 authorized_keys
-  -- Set up reverse ssh tunnel
-  -- Set up syncthing
-  -- Set up samba mount point
-  -- `sudo reboot`
+  - `sudo apt update`
+  - `sudo apt upgrade`
+  - `sudo apt autoremove`
+  - Disable autoupgrades
+  - `git config --global user.name "Pat Welch"`
+  - `git config --global user.email pat@mousebrains.com`
+  - `git config --global core.editor vim`
+  - `git config --global pull.rebase false`
+  - `git config --global submodule.recurse true`
+  - `git config --global diff.submodule log`
+  - `git config --global status.submodulesummary 1`
+  - `git config --global push.recurseSubmodules on-demand`
+  - `sudo apt install fail2ban`
+  - `sudo apt install nginx`
+  - `sudo apt install php-fpm`
+  - `sudo apt install samba*`
+  - `sudo apt install php-xml`
+  - `sudo apt install php-yaml`
+  - `sudo apt install python3-pip`
+  - `sudo apt install python3-pandas`
+  - `sudo apt install python3-xarray`
+  - `sudo apt install python3-geopandas`
+  - `python3 -m pip install --user inotify-simple`
+  - `python3 -m pip install --user libais`
+  - Update ~/.ssh/config for vm3
+  - Create ~/.ssh/id_rsa, if needed
+  - Add new id_rsa key to vm3 authorized_keys
+  - Set up reverse ssh tunnel
+  - Set up syncthing
+  - Set up samba mount point
+  - `sudo reboot`
 
 31. Add a mount points for all users on all machines by adding *~/SUNRISE/SAMBA/forall.conf* to */etc/samba/smb.conf*
 32. If on the waltonsmith0, create a mount point for Jasmine and the ASVs by:
