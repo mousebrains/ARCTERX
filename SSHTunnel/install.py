@@ -30,7 +30,7 @@ parser.add_argument("--service", type=str, default="SSHtunnel", help="Service na
 parser.add_argument("--serviceDirectory", type=str, default="/etc/systemd/system",
         help="Where to copy service file to")
 grp = parser.add_argument_group(description="Service file translation related options")
-grp.add_argument("--hostname", type=str, default="vm3", help="Remote hostname")
+grp.add_argument("--hostname", type=str, default="arcterx", help="Remote hostname")
 grp.add_argument("--port", type=int, help="Port number on remote host")
 grp.add_argument("--username", type=str, help="Local user to run service as")
 grp.add_argument("--group", type=str, help="Local group to run service as")
