@@ -10,7 +10,7 @@
 5. The initial password is *ubuntu* which you'll have to change on the first login.
 6. Log back into the Pi using the new password, `ssh ubuntu@ipAddr`
 7. Set the hostname using the command `sudo hostnamectl set-hostname YourNewHostname`
-8. Enable zeroconf/bonjour via AVAHI-DAEMON, `sudo apt install avahi-daemon`
+8. Enable zeroconf/bonjour via AVAHI-DAEMON, `sudo apt install avahi-daemon --yes`
 9. Add the primary user via the commands
   - `sudo adduser pat`
   - `sudo usermod -aG sudo pat`
