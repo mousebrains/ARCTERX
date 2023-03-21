@@ -41,8 +41,8 @@ def setupSSH(args:ArgumentParser) -> None:
     
     fn = os.path.join(sshDir, "config")
     content = [
-            "Host vm3 glidervm3 glidervm3.ceoas.oregonstate.edu",
-            "  Hostname glidervm3.ceoas.oregonstate.edu",
+            "Host arcterx arcterx.ceoas.oregonstate.edu",
+            "  Hostname arcterx.ceoas.oregonstate.edu",
             "  User pat",
             "  IdentityFile ~/.ssh/id_rsa",
             "  Compression yes",
@@ -53,7 +53,7 @@ def setupSSH(args:ArgumentParser) -> None:
         with open(fn, "r") as fp:
             for line in fp.readlines():
                 if re.match(r"\s*Host\s+", line):
-                    qIgnore = re.match(r"\s*Host\s+vm3\s*", line) is not None
+                    qIgnore = re.match(r"\s*Host\s+arcterx\s*", line) is not None
                 if qIgnore: continue
                 content.append(line.rstrip())
     logging.info("Updating %s", fn)
@@ -61,7 +61,7 @@ def setupSSH(args:ArgumentParser) -> None:
         fp.write("\n".join(content))
         fp.write("\n")
 
-    execCmd((args.sshcopyid, "vm3"))
+    execCmd((args.sshcopyid, "arcterx"))
 
 parser = ArgumentParser()
 grp = parser.add_argument_group(description="installation options")
@@ -78,7 +78,7 @@ grp = parser.add_argument_group(description="syncthing arguments")
 grp.add_argument("--folderRoot", type=str, default="~/Sync.ARCTERX", help="Sync thing root")
 grp.add_argument("--kbpsSend", type=int, default=25, help="kilobytes/sec to send data")
 grp.add_argument("--kbpsRecv", type=int, default=25, help="kilobytes/sec to recveive data")
-grp.add_argument("--peer", type=str, default="glidervm3", help="syncthing peer")
+grp.add_argument("--peer", type=str, default="arcterx", help="syncthing peer")
 
 grp = parser.add_argument_group(description="Flow options")
 grp.add_argument("--noUpgrade", action="store_true",
@@ -110,8 +110,6 @@ if not args.noUpgrade: # System level update, upgrade, and remove old packages
 
 shutoffAutoupdates(args) # Turn off auto updates
 
-sys.exit(1)
-
 # Set up git global variables
 for key, value in {"user.name": args.gitUser, "user.email": args.gitemail,
         "core.editor": args.gitEditor, "pull.rebase": "false", 
@@ -133,7 +131,7 @@ if args.shore:
     execCmd(("./install.py", "--folderRoot", args.folderRoot, "--shore",),
         cwd=os.path.abspath(os.path.expanduser("~/ARCTERX/syncthing")))
 else: # Shipside
-    setupSSH(args) # Setup ssh for connecting to vm3
+    setupSSH(args) # Setup ssh for connecting to arcterx
     # Set up reverse ssh tunnel so shoreside can log into this machine
     execCmd(("./install.py",), cwd=os.path.abspath(os.path.expanduser("~/ARCTERX/SSHTunnel")))
     execCmd(("./install.py", "--folderRoot", args.folderRoot, "--ship",
@@ -141,5 +139,4 @@ else: # Shipside
         cwd=os.path.abspath(os.path.expanduser("~/ARCTERX/syncthing")))
 
 if not args.noreboot:
-    # execCmd((args.sudo, "reboot"))
-    pass
+    execCmd((args.sudo, "reboot"))

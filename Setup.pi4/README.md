@@ -46,9 +46,9 @@
   - `sudo apt install python3-geopandas`
   - `python3 -m pip install --user inotify-simple`
   - `python3 -m pip install --user libais`
-  - Update ~/.ssh/config for vm3
+  - Update ~/.ssh/config for arcterx
   - Create ~/.ssh/id_rsa, if needed
-  - Add new id_rsa key to vm3 authorized_keys
+  - Add new id_rsa key to arcterx authorized_keys
   - Set up reverse ssh tunnel
   - Set up syncthing
   - Set up samba mount point
