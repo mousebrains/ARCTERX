@@ -26,7 +26,13 @@ ExecStart=@EXECUTABLE@ \
 	--logfile=@LOGFILE@ \
 	--host=@HOSTNAME@ \
 	--remotePort=@PORT@
+
+Restart=always
 RestartSec=@RESTARTSECONDS@
+
+# Wait for the network to be online
+After=network-online.target
+Wants=network-online.target
 
 # Harden
 NoNewPrivileges=true

@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 import subprocess
 import logging
 import time
+import sys
 from TPWUtils import Logger
 
 parser = ArgumentParser()
@@ -64,6 +65,9 @@ for retry in range(args.retries): # Number of times to retry an attempt
     except:
         logging.exception("Error in %s", cmd)
 
-    if args.delay > 0:
+    if (args.delay > 0) and ((retry + 1) < args.retries):
         logging.info("Sleeping %s seconds before the next connection attempt", args.delay)
         time.sleep(args.delay)
+
+logging.info("Exceeded maximum number of retries, %s", args.retries)
+sys.exit(0)
