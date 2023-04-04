@@ -17,7 +17,7 @@ def getCredentials(fn:str) -> str:
         except Exception as e:
             logging.warning("Unable to open %s, %s", fn, str(e))
 
-    logging.info("Going to build a fresh AVISO credentials file, %s", fn)
+    logging.info("Going to build a fresh credentials file, %s", fn)
     info = {
             "username": input("Enter username: "),
             "password": input("Enter password: "),
