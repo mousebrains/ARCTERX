@@ -54,7 +54,7 @@ cmd.append(args.host)
 logging.info("Command: %s", " ".join(cmd))
 
 for retry in range(args.retries): # Number of times to retry an attempt
-    logging.info("Starting, retry %s", retry)
+    logging.info("Starting, retry %s of %s", retry, args.retries)
     try:
         s = subprocess.run(
                 cmd,
