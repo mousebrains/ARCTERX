@@ -23,6 +23,7 @@ ReadOnlyPaths=/
 
 ExecStart=@EXECUTABLE@ \
 	--verbose \
+	--retries=5 \
 	--logfile=@LOGFILE@ \
 	--host=@HOSTNAME@ \
 	--remotePort=@PORT@
