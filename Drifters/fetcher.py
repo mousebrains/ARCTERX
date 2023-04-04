@@ -14,7 +14,7 @@ from Credentials import getCredentials
 import math
 import datetime
 import re
-import sqlite3
+import psycopg
 import os
 import sys
 import requests
@@ -22,26 +22,30 @@ from requests.auth import HTTPDigestAuth
 
 def mkTable(db) -> None:
     sql = "CREATE TABLE IF NOT EXISTS drifter (\n"
-    sql+= " ident TEXT,\n"
-    sql+= " t TEXT,\n"
-    sql+= " latitude FLOAT,\n"
-    sql+= " longitude FLOAT,\n"
-    sql+= " SST FLOAT,\n"
-    sql+= " SLP FLOAT,\n"
-    sql+= " battery FLOAT,\n"
+    sql+= " ident VARCHAR(20) COMPRESSION lz4,\n"
+    sql+= " t TIMESTAMP WITH TIME ZONE,\n"
+    sql+= " latitude DOUBLE PRECISION NOT NULL,\n"
+    sql+= " longitude DOUBLE PRECISION NOT NULL,\n"
+    sql+= " SST DOUBLE PRECISION,\n"
+    sql+= " SLP DOUBLE PRECISION,\n"
+    sql+= " battery DOUBLE PRECISION,\n"
     sql+= " drogueCounts INTEGER,\n"
-    sql+= " qCSV INTEGER DEFAULT 0,\n"
+    sql+= " qCSV BOOLEAN DEFAULT FALSE,\n"
     sql+= " PRIMARY KEY(t, ident)\n"
     sql+= ");"
+
+    sql1 = "CREATE INDEX IF NOT EXISTS drifter_ident ON drifter (ident);"
+
     cur = db.cursor()
     cur.execute("BEGIN TRANSACTION;");
     cur.execute(sql);
+    cur.execute(sql1);
     db.commit()
 
 def lastTime(db) -> None:
     cur = db.cursor()
-    for row in cur.execute("SELECT t FROM drifter ORDER BY t DESC LIMIT 1;"):
-        return datetime.datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+    for row in cur.execute("SELECT max(t) FROM drifter;"):
+        return row[0]
     return None
 
 parser = ArgumentParser()
@@ -55,8 +59,7 @@ parser.add_argument("--url", type=str,
         help="URL to fetch")
 parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/Drifter/drifter.csv",
         help="Where to store output")
-parser.add_argument("--db", type=str, default="~/logs/drifter.db",
-        help="Where to store the database")
+parser.add_argument("--db", type=str, default="arcterx", help="Which Postgresql DB to use")
 parser.add_argument("--force", action="store_true", help="Rebuild the CSV file from scratch")
 grp = parser.add_mutually_exclusive_group()
 grp.add_argument("--refetch", action="store_true", help="Rebuild the DB from a full fetch")
@@ -66,34 +69,41 @@ args = parser.parse_args()
 logger = Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
 
 args.csv = os.path.abspath(os.path.expanduser(args.csv))
-args.db = os.path.abspath(os.path.expanduser(args.db))
 args.credentials = os.path.abspath(os.path.expanduser(args.credentials))
 
 if not os.path.isdir(os.path.dirname(args.csv)):
-    logger.info("Creating %s", os.path.dirname(args.data))
-    os.makedirs(os.path.dirname(args.data), mode=0o755, exist_ok=True)
-
-if not os.path.isdir(os.path.basename(args.db)):
-    logger.info("Creating %s", os.path.basename(args.db))
-    os.makedirs(os.path.basename(args.db), mode=0o755, exist_ok=True)
+    dirname = os.path.dirname(args.csv)
+    logger.info("Creating %s", dirname)
+    os.makedirs(dirname, mode=0o755, exist_ok=True)
 
 (username, codigo) = getCredentials(args.credentials) # login credentials for ucsd
 
-with sqlite3.connect(args.db) as db: # Get the last time stored in the database
+with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in the database
     mkTable(db)
     if not args.nofetch:
         t = None if args.refetch else lastTime(db)
         if t is None:
             url = args.url + "?start_date=" + args.startDate
         else:
-            dt = (datetime.datetime.now() - t).total_seconds() / 86400
-            dt += 300/86400 # Add 5 minute to the fetch interval
-            dt = math.ceil(dt * 1000) / 1000
+            now = datetime.datetime.now(tz=datetime.timezone.utc)
+            dt = max(0, (now - t).total_seconds()) # seconds since last update
+            dt += 300 # Add 5 minute to the fetch interval
+            dt /= 86400 # Days ago
+            dt = math.ceil(dt * 10000) / 10000 # round up to the longer 8.64 second interval
             url = args.url + f"?days_ago={dt}"
         logger.info("url %s", url)
         with requests.get(url, auth=(username, codigo)) as r:
-            sql = "INSERT OR REPLACE INTO drifter (ident,t,latitude,longitude,SST,SLP,battery,drogueCounts)"
-            sql+= " VALUES(?,?,?,?,?,?,?,?);"
+            sql = "INSERT INTO drifter"
+            sql+= "(ident,t,latitude,longitude,SST,SLP,battery,drogueCounts)"
+            sql+= " VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+            sql+= " ON CONFLICT (t,ident) DO UPDATE SET"
+            sql +=" latitude=excluded.latitude"
+            sql +=",longitude=excluded.longitude"
+            sql +=",SST=excluded.SST"
+            sql +=",SLP=excluded.SLP"
+            sql +=",battery=excluded.battery"
+            sql +=",drogueCounts=excluded.drogueCounts"
+            sql+= ";"
             cur = db.cursor()
             cur.execute("BEGIN TRANSACTION;")
             cnt = 0
@@ -104,6 +114,7 @@ with sqlite3.connect(args.db) as db: # Get the last time stored in the database
                 for i in range(len(fields)):
                     fields[i] = fields[i].strip() # Strip off leanding/trailing whitespace
                 fields[1] = datetime.datetime.strptime(fields[1], "%Y-%m-%d %H:%M:%S")
+                fields[1] = fields[1].replace(tzinfo=datetime.timezone.utc)
                 cur.execute(sql, fields[0:8])
                 cnt += 1
             db.commit()
@@ -115,7 +126,7 @@ with sqlite3.connect(args.db) as db: # Get the last time stored in the database
     if args.force or not os.path.isfile(fn):
         mode = "w"
     else:
-        sql+= " WHERE qCSV!=1"
+        sql+= " WHERE NOT qCSV"
         mode = "a"
     sql+= " ORDER BY t,ident;"
 
@@ -132,6 +143,6 @@ with sqlite3.connect(args.db) as db: # Get the last time stored in the database
         if len(wrote): # Update qCSV for these records
             cur.execute("BEGIN TRANSACTION;")
             for item in wrote:
-                cur.execute("UPDATE drifter SET qCSV=1 WHERE t=? AND ident=?", item)
+                cur.execute("UPDATE drifter SET qCSV=TRUE WHERE t=%s AND ident=%s", item)
             db.commit()
         logger.info("Wrote %d records to %s", len(wrote), fn)
