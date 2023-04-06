@@ -126,6 +126,7 @@ def fetchData(db, args:ArgumentParser) -> None:
             if len(fields) < 8: continue;
             for i in range(len(fields)):
                 fields[i] = fields[i].strip() # Strip off leanding/trailing whitespace
+            if float(fields[2]) == -90 and float(fields[3]) == -180: continue
             fields[1] = datetime.datetime.strptime(fields[1], "%Y-%m-%d %H:%M:%S")
             fields[1] = fields[1].replace(tzinfo=datetime.timezone.utc)
             cur.execute(sql, fields[0:8])
