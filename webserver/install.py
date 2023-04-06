@@ -132,9 +132,9 @@ grp.add_argument("--siteFile", type=str, default="arcterx", help="web server sit
 grp.add_argument("--nginxRoot", type=str, default="/etc/nginx", help="NGINX configuraton directory")
 grp.add_argument("--nginxService", type=str, default="nginx.service",
         help="systemctl nginx fpm service name")
-grp.add_argument("--phpRoot", type=str, default="/etc/php/8.0/fpm", 
+grp.add_argument("--phpRoot", type=str, default="/etc/php/8.1/fpm", 
         help="php-fpm configuraton directory")
-grp.add_argument("--phpService", type=str, default="php8.0-fpm.service",
+grp.add_argument("--phpService", type=str, default="php8.1-fpm.service",
         help="systemctl php fpm service name")
 grp = parser.add_argument_group(description="Command full paths")
 grp.add_argument("--sudo", type=str, default="/usr/bin/sudo", help="Full path to sudo")
