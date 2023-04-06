@@ -19,9 +19,13 @@
 Description=Fetch drifter fixes
 
 [Timer]
+# When the ship is near the drifters, fetch every 5 minutes
+# When the ship is not near the drifters, but the gliders are, fetch every hour
+# When the gliders are gone, fetch every 12 hours
 # dayOfWeek Year-Month-Day Hour:Minute:Second
-# the model run is typically run by 07:00 CST
-OnCalendar=*-*-* 0:37
+# OnCalendar=*-*-* *:01/5:30
+# OnCalendar=*-*-* 00/1:01:30
+OnCalendar=*-*-* 01/6:01:30
 Persistent=true
 
 [Install]
