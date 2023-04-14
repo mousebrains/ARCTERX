@@ -67,8 +67,8 @@ def mkTable(db) -> None:
     sql = "CREATE TABLE IF NOT EXISTS drifter (\n"
     sql+= " ident VARCHAR(20) COMPRESSION lz4,\n"
     sql+= " t TIMESTAMP WITH TIME ZONE,\n"
-    sql+= " latitude DOUBLE PRECISION NOT NULL,\n"
-    sql+= " longitude DOUBLE PRECISION NOT NULL,\n"
+    sql+= " latitude DOUBLE PRECISION,\n"
+    sql+= " longitude DOUBLE PRECISION,\n"
     sql+= " SST DOUBLE PRECISION,\n"
     sql+= " SLP DOUBLE PRECISION,\n"
     sql+= " battery DOUBLE PRECISION,\n"
@@ -126,9 +126,12 @@ def fetchData(db, args:ArgumentParser) -> None:
             if len(fields) < 8: continue;
             for i in range(len(fields)):
                 fields[i] = fields[i].strip() # Strip off leanding/trailing whitespace
-            # if float(fields[2]) == -90 and float(fields[3]) == -180: continue
             fields[1] = datetime.datetime.strptime(fields[1], "%Y-%m-%d %H:%M:%S")
             fields[1] = fields[1].replace(tzinfo=datetime.timezone.utc)
+            if float(fields[2]) == -90: fields[2] = None
+            if float(fields[3]) == -180: fields[3] = None
+            if float(fields[4]) == -5: fields[4] = None
+            if float(fields[5]) == 850: fields[5] = None
             cur.execute(sql, fields[0:8])
             cnt += 1
         db.commit()
