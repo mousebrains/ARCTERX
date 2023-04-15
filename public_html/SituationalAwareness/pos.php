@@ -27,12 +27,12 @@ class DB {
 
 		$this->tables["drifter"] =
 			$db->prepare(
-				"SELECT ident AS id,t,latitude AS lat,longitude AS lon"
-			        . " FROM drifter WHERE (ident,t) IN (" 
-				. " SELECT ident,max(t) AS t FROM drifter WHERE"
+				"SELECT id,t,lat,lon"
+			        . " FROM drifter WHERE (id,t) IN (" 
+				. " SELECT id,max(t) AS t FROM drifter WHERE"
 				. " t>=? AND "
-				. "(latitude IS NOT NULL) AND (longitude IS NOT NULL)"
-				. " GROUP BY ident);"
+				. "(lat IS NOT NULL) AND (lon IS NOT NULL)"
+				. " GROUP BY id);"
 		);
 
 		$this->latest = array();
