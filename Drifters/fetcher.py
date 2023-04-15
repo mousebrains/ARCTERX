@@ -64,6 +64,7 @@ def updateCSV(db, dirname:str, qForce:bool) -> None:
     logging.info("Fetched %s CSV records created %s opened %s", cnt, nCreated, nOpened)
 
 def mkTable(db) -> None:
+
     sql = "CREATE TABLE IF NOT EXISTS drifter (\n"
     sql+= " ident VARCHAR(20) COMPRESSION lz4,\n"
     sql+= " t TIMESTAMP WITH TIME ZONE,\n"
