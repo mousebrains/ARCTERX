@@ -9,6 +9,7 @@
 # March-2022, Pat Welch, pat@mousebrains.com
 
 from TPWUtils import Logger
+from TPWUtils.loadAndExecuteSQL import loadAndExecuteSQL
 import logging
 from argparse import ArgumentParser
 from Credentials import getCredentials
@@ -26,11 +27,11 @@ def updateCSV(db, dirname:str, qForce:bool) -> None:
     sql1 = "WITH updated AS ("
     sql1+= "UPDATE drifter SET qCSV=TRUE"
     if not args.force: sql1+= " WHERE NOT qCSV"
-    sql1+= " RETURNING ident,t,latitude,longitude,SST,SLP,battery,drogueCounts"
+    sql1+= " RETURNING id,t,lat,lon,SST,SLP,battery,drogueCounts"
     sql1+= ")"
     sql1+= "INSERT INTO tpwDrifter SELECT * FROM updated;"
 
-    sql2 = "SELECT ident,t,latitude,longitude,SST,SLP,battery,drogueCounts"
+    sql2 = "SELECT id,t,lat,lon,SST,SLP,battery,drogueCounts"
     sql2+= " FROM tpwDrifter ORDER BY t;"
 
     cur = db.cursor()
@@ -52,7 +53,7 @@ def updateCSV(db, dirname:str, qForce:bool) -> None:
                 logging.info("Creating %s", fn)
                 nCreated += 1
                 fp = open(fn, "w")
-                fp.write("ident,time,latitude,longitude,sst,slp,battery,drogue\n")
+                fp.write("id,t,lat,lon,sst,slp,battery,drogue\n")
             else:
                 logging.info("Opening %s", fn)
                 nOpened += 1
@@ -62,29 +63,6 @@ def updateCSV(db, dirname:str, qForce:bool) -> None:
 
     if fp: fp.close()
     logging.info("Fetched %s CSV records created %s opened %s", cnt, nCreated, nOpened)
-
-def mkTable(db) -> None:
-
-    sql = "CREATE TABLE IF NOT EXISTS drifter (\n"
-    sql+= " ident VARCHAR(20) COMPRESSION lz4,\n"
-    sql+= " t TIMESTAMP WITH TIME ZONE,\n"
-    sql+= " latitude DOUBLE PRECISION,\n"
-    sql+= " longitude DOUBLE PRECISION,\n"
-    sql+= " SST DOUBLE PRECISION,\n"
-    sql+= " SLP DOUBLE PRECISION,\n"
-    sql+= " battery DOUBLE PRECISION,\n"
-    sql+= " drogueCounts INTEGER,\n"
-    sql+= " qCSV BOOLEAN DEFAULT FALSE,\n"
-    sql+= " PRIMARY KEY(t, ident)\n"
-    sql+= ");"
-
-    sql1 = "CREATE INDEX IF NOT EXISTS drifter_ident ON drifter (ident);"
-
-    cur = db.cursor()
-    cur.execute("BEGIN TRANSACTION;");
-    cur.execute(sql);
-    cur.execute(sql1);
-    db.commit()
 
 def lastTime(db) -> None:
     cur = db.cursor()
@@ -108,11 +86,11 @@ def fetchData(db, args:ArgumentParser) -> None:
     logging.info("url %s", url)
     with requests.get(url, auth=(username, codigo)) as r:
         sql = "INSERT INTO drifter"
-        sql+= "(ident,t,latitude,longitude,SST,SLP,battery,drogueCounts)"
+        sql+= "(id,t,lat,lon,SST,SLP,battery,drogueCounts)"
         sql+= " VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
-        sql+= " ON CONFLICT (t,ident) DO UPDATE SET"
-        sql +=" latitude=excluded.latitude"
-        sql +=",longitude=excluded.longitude"
+        sql+= " ON CONFLICT (t,id) DO UPDATE SET"
+        sql +=" lat=excluded.lat"
+        sql +=",lon=excluded.lon"
         sql +=",SST=excluded.SST"
         sql +=",SLP=excluded.SLP"
         sql +=",battery=excluded.battery"
@@ -147,6 +125,8 @@ parser.add_argument("--startDate", type=str, default="2022-03-26",
 parser.add_argument("--url", type=str,
         default="https://gdp.ucsd.edu/cgi-bin/projects/arcterx/drifter.py",
         help="URL to fetch")
+parser.add_argument("--sql", type=str, default="drifter.sql",
+        help="SQL defining tables and triggers")
 parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/Drifter",
         help="Where to store CSV files")
 parser.add_argument("--db", type=str, default="arcterx", help="Which Postgresql DB to use")
@@ -169,6 +149,6 @@ if not os.path.isdir(os.path.dirname(args.csv)):
 (username, codigo) = getCredentials(args.credentials) # login credentials for ucsd
 
 with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in the database
-    mkTable(db)
+    loadAndExecuteSQL(db, args.sql)
     fetchData(db, args)
     updateCSV(db, args.csv, args.force)
