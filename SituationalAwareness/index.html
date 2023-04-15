@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+ <link rel="stylesheet" href="css/leaflet.css" />
+ <link rel="stylesheet" href="css/leaflet-ruler.css" />
+ <link rel="stylesheet" href="css/L.Control.MousePosition.css" />
+ <script src="js/leaflet.js"></script>
+ <script src="js/leaflet-ruler.js"></script>
+ <script src="js/L.Control.MousePosition.js"></script>
+ <title>ARCTERX</title>
+</head>
+<body style="height: 100%">
+<div id="map" style="width: 100%; height: 99%;"></div>
+<script>
+L.LatLng.prototype.bearingTo = function(other) {
+	console.log("this " + this.lat + " " + this.lng)
+	console.log("other " + other.lat + " " + other.lng)
+    var d2r  = Math.PI / 180;
+    var lat1 = this.lat * d2r;
+    var lat2 = other.lat * d2r;
+    var dLon = (other.lng-this.lng) * d2r;
+    var y    = Math.sin(dLon) * Math.cos(lat2);
+    var x    = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+    var brng = Math.atan2(y, x);
+    brng = parseInt( brng * 180 * Math.PI );
+    brng = (brng + 360) % 360;
+    return brng;
+};
+
+var gebcoMap = L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer//tile/{z}/{y}/{x}.png",
+	{
+		maxZoom: 10,
+		attribution: '&copy; GEBCO',
+	});
+var topoMap = L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services//World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png",
+	{
+		maxZoom: 19,
+		attribution: '&copy; ESRI',
+	});
+
+var satMap = L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png",
+	{
+		maxZoom: 17,
+		attribution: '&copy; ESRI',
+	});
+
+var eezMap = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+	{
+		layers: "ARCTERX:eez_boundaries_v11",
+		format: "image/svg",
+		transparent: true,
+	});
+
+
+var baseMaps = {
+	"GEBCO": gebcoMap,
+	"Topo": topoMap,
+	"Sattelite": satMap,
+};
+
+var overlayMaps = {
+	"EEZ": eezMap,
+};
+
+var map = L.map("map", {
+	center: [7.5150, 134.5825], 
+	zoom: 10,
+	layers: [gebcoMap],
+});
+
+L.control.mousePosition().addTo(map);
+
+var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+var rulerOptions = {
+          lengthUnit: {
+            factor: 0.539956803,    //  from km to nm
+            display: 'NM',
+            decimal: 2
+          }
+        };
+L.control.ruler(rulerOptions).addTo(map);
+
+var ships = {};
+var assets = {};
+var names = {};
+
+var marker0 = L.circleMarker([7.5150, 134.5825], {
+	radius: 10,
+	opacity: 0.5,
+	fillOopacity: 0.5,
+	color: "red",
+	fillColor: "red",
+	fillOpacity: 0.5,
+});
+names[marker0] = "Thompson";
+ships[marker0] = names[marker0] + "<br>Speed 8.2 knots<br>Heading 145"
+marker0.addTo(map).bindPopup(ships[marker0]);
+
+var marker1 = L.circleMarker([8.0150, 134.5825], {
+	radius: 10,
+	opacity: 0.5,
+	fillOopacity: 0.5,
+	color: "blue",
+	fillColor: "blue",
+	fillOpacity: 0.5,
+});
+names[marker1] = "Drifter foo";
+assets[marker1] = names[marker1];
+marker1.addTo(map).bindPopup(assets[marker1]);
+
+var openPopups = {};
+
+map.on("popupopen", function(e) {
+	console.log("Popup Open");
+	var popup = e.popup;
+	var marker = popup._source;
+	var myLatlng = popup.getLatLng();
+	var txt = marker in assets ? assets[marker] : ships[marker];
+	console.log(txt);
+	for (var other in ships) {
+		console.log(other);
+		var otherName = names[other];
+		var otherLatLng = other.getLatLng();
+		var dist = myLatLng.distanceTo(otherLatLng) / 1852; // Nautical Miles
+		var bearing = myLatLng.bearingTo(other.getLatLng())
+		txt += "<br>" + otherName + " dist=" + dist.toFixed(2) + "NM bearing=" + bearing.toFixed(0) + " deg true";
+		console.log(txt)
+	}
+	popup.setContent(txt);
+});
+
+map.on("popupclose", function(e) {
+	console.log("Popup Close");
+	console.log(e.popup._source);
+});
+// <br>distance: "
+	// + (marker1.getLatLng().distanceTo(marker0.getLatLng()) / 1852)
+	// + " nm<br> bearing: "
+	// + marker0.getLatLng().bearingTo(marker1.getLatLng())
+	// + " deg true");
+
+// function myFunc() {
+	// var t = new Date;
+	// marker1.getPopup().setContent(t.toISOString());
+	// console.log("myFunc " + t.toISOString());
+// }
+</script>
+<script>
+const posSource = new EventSource("pos.php");
+posSource.onmessage = (event) => {
+	console.log(event.data);
+};
+</script>
+</body>
+</html>
