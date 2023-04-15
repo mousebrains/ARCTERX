@@ -5,7 +5,11 @@
 </head>
 <body>
 <ul>
-<li><a href='AVISO'>AVISO</a></li>
+<?php
+if (is_dir("AVISO")) {
+	echo "<li><a href='AVISO'>AVISO</a></li>\n";
+}
+?>
 <li><a href='links.html'>Links</a></li>
 <li><a href='Sync.ARCTERX/Shore/Papers'>Papers</a></li>
 <li><a href='Sync.ARCTERX/Shore/Software'>Software</a></li>
