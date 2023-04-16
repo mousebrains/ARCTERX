@@ -10,6 +10,7 @@ from TPWUtils.Thread import Thread
 from TPWUtils.loadAndExecuteSQL import loadAndExecuteSQL
 from argparse import ArgumentParser
 import logging
+import datetime
 import pyinotify
 import time
 import queue
@@ -26,12 +27,11 @@ class Reader(Thread):
     def runIt(self) -> None:
         dbOpt = f"dbname={self.args.db}"
         dt = self.args.delay
-        exp = re.compile(r"drifter[.][0-9]+[.]csv")
-        logging.info("exp %s", exp)
+        exp = re.compile(r"\w+[.]\d+[.]csv")
         q = self.__queue
 
         with psycopg.connect(dbOpt) as db: 
-            for fn in glob.glob(os.path.join(args.csv, "drifter.*.csv")):
+            for fn in glob.glob(os.path.join(args.csv, "*.csv")):
                 if not exp.fullmatch(os.path.basename(fn)): continue
                 self.__loadFile(db, fn)
 
@@ -40,13 +40,12 @@ class Reader(Thread):
             q.task_done()
             if not exp.fullmatch(os.path.basename(fn)): continue
             time.sleep(dt)
-            logging.info("Woke up")
             with psycopg.connect(dbOpt) as db: self.__loadFile(db, fn)
 
     @staticmethod
     def __loadFile(db, fn:str) -> bool:
-        sql0 = "INSERT INTO drifter (id,t,lat,lon,sst,slp,battery,droguecounts)"
-        sql0+= " VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+        sql0 = "INSERT INTO ship (id,t,lat,lon,spd,hdg)"
+        sql0+= " VALUES(%s,%s,%s,%s,%s,%s)"
         sql0+= " ON CONFLICT DO NOTHING;"
 
         sql1 = "SELECT position FROM filePosition WHERE filename=%s;"
@@ -54,11 +53,18 @@ class Reader(Thread):
         sql2 = "INSERT INTO filePosition VALUES (%s,%s)"
         sql2+= " ON CONFLICT (filename) DO UPDATE SET position=excluded.position;"
 
+        matches = re.match(r"(\w+)[.]\d+.csv", os.path.basename(fn))
+        if not matches:
+            logging.warning("Bad filename, %s", fn)
+            return False
+        ident = matches[1]
+
         cur = db.cursor()
         pos = None
         for row in cur.execute(sql1, [fn]):
             pos = row[0]
             break
+        logging.info("fn %s pos %s", fn, pos)
         cur.execute("BEGIN TRANSACTION;")
         cnt = 0;
         with open(fn, "r") as fp:
@@ -66,13 +72,16 @@ class Reader(Thread):
                 fp.seek(pos)
             for line in fp:
                 fields = line.strip().split(",")
-                if len(fields) < 8: continue # Truncated line so ignore
+                if len(fields) < 5: continue # Truncated line so ignore
                 try:
-                    for i in range(2,8):
+                    for i in range(len(fields)):
                         fields[i] = float(fields[i]) if fields[i] != "None" else None
-                    cur.execute(sql0, fields[:8]);
+                    fields[0] = datetime.datetime.fromtimestamp(fields[0], datetime.timezone.utc)
+                    fields.insert(0, ident)
+                    cur.execute(sql0, fields);
                     cnt += 1
                 except:
+                    logging.exception("")
                     continue
             if cnt:
                 ipos = pos
@@ -80,15 +89,17 @@ class Reader(Thread):
                 cur.execute(sql2, (fn, pos))
                 logging.info("Loaded %s cnt %s pos %s -> %s", fn, cnt, ipos, pos)
                 db.commit();
+                return True
             else:
                 logging.info("Nothing from %s pos %s", fn, pos)
                 db.rollback();
+                return False
         
 parser = ArgumentParser()
 Logger.addArgs(parser)
-parser.add_argument("--sql", type=str, default="drifter.sql",
+parser.add_argument("--sql", type=str, default="ship.sql",
                     help="Filename with table definitions")
-parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/Drifter",
+parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Ship/Ship",
         help="Input directory to monitor for changes")
 parser.add_argument("--db", type=str, default="arcterx", help="Which Postgresql DB to use")
 parser.add_argument("--delay", type=float, default=10,
