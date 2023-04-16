@@ -2,23 +2,23 @@
 # From ship's CSV file extract lat/lon/speed/heading
 # and save into database and a CSV file
 #
-# sudo cp Ship_csv2DB.service /etc/systemd/system/
+# sudo cp Ship2DB.service /etc/systemd/system/
 #
 # sudo systemctl daemon-reload
-# sudo systemctl enable Ship_csv2DB.service
-# sudo systemctl start Ship_csv2DB.service
+# sudo systemctl enable Ship2DB.service
+# sudo systemctl start Ship2DB.service
 #
 # Apr-2023, Pat Welch, pat@mousebrains.com
 
 [Unit]
-Description=Ship CSV to DB
+Description=Ship's CSV to DB
 
 [Service]
 # Launced by timer
 User=pat
-WorkingDirectory=/home/pat/ARCTERX/Ships
+WorkingDirectory=/home/pat/ARCTERX/Ship
 #
-ExecStart=/home/pat/ARCTERX/Ships/csv2DB.py \
+ExecStart=/home/pat/ARCTERX/Ship/ship2DB.py \
 	--ship=~/ship.csv \
 	--id=Thompson \
 	--delay=60 \
