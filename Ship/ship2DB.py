@@ -73,16 +73,16 @@ while True:
             cur.execute(sql2, (args.ship, fp.tell()))
             db.commit()
     logging.info("Saved %s records from %s", cnt, args.ship)
-    # Now update the CSV file
-    ofn = os.path.join(args.csv, args.id + ".csv")
-    if not os.path.isfile(ofn):
-        dirname = os.path.dirname(ofn)
-        if not os.path.isdir(dirname):
-            logging.info("Creating %s", dirname)
-            os.makedirs(dirname, 0o744, exist_ok=True)
-        with open(ofn, "w") as fp:
-            fp.write("t,lat,lon,spd,hdg\n")
-    if lastRow:
+    if lastRow: # Something to save to CSV file
+        ofn = os.path.join(args.csv, args.id + lastRow[0].strftime(".%Y%m%d.csv"))
+        logging.info("Saving to %s", ofn)
+        if not os.path.isfile(ofn):
+            dirname = os.path.dirname(ofn)
+            if not os.path.isdir(dirname):
+                logging.info("Creating %s", dirname)
+                os.makedirs(dirname, 0o744, exist_ok=True)
+            with open(ofn, "w") as fp:
+                fp.write("t,lat,lon,spd,hdg\n")
         lastRow[0] = lastRow[0].timestamp()
         lastRow = map(str, lastRow)
         with open(ofn, "a") as fp:
