@@ -55,7 +55,6 @@ while True:
             if pos:
                 fp.seek(pos)
             for line in fp:
-                logging.info("line %s", line.strip())
                 fields = line.strip().split(",")
                 if len(fields) < 5: continue
                 try:
