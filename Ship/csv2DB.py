@@ -66,19 +66,20 @@ class Reader(Thread):
             break
         logging.info("fn %s pos %s", fn, pos)
         cur.execute("BEGIN TRANSACTION;")
-        cnt = 0;
+        cnt = 0
         with open(fn, "r") as fp:
             if pos:
                 fp.seek(pos)
             for line in fp:
                 fields = line.strip().split(",")
                 if len(fields) < 5: continue # Truncated line so ignore
+                if fields[0] == "t": continue
                 try:
                     for i in range(len(fields)):
                         fields[i] = float(fields[i]) if fields[i] != "None" else None
                     fields[0] = datetime.datetime.fromtimestamp(fields[0], datetime.timezone.utc)
                     fields.insert(0, ident)
-                    cur.execute(sql0, fields);
+                    cur.execute(sql0, fields)
                     cnt += 1
                 except:
                     logging.exception("")
@@ -88,11 +89,11 @@ class Reader(Thread):
                 pos = fp.tell()
                 cur.execute(sql2, (fn, pos))
                 logging.info("Loaded %s cnt %s pos %s -> %s", fn, cnt, ipos, pos)
-                db.commit();
+                db.commit()
                 return True
             else:
                 logging.info("Nothing from %s pos %s", fn, pos)
-                db.rollback();
+                db.rollback()
                 return False
         
 parser = ArgumentParser()
