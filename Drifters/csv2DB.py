@@ -38,9 +38,7 @@ class Reader(Thread):
         while True:
             (t0, fn) = q.get()
             q.task_done()
-            logging.info("Pre %s", fn)
             if not exp.fullmatch(os.path.basename(fn)): continue
-            logging.info("%s %s delay %s", t0, fn, dt)
             time.sleep(dt)
             logging.info("Woke up")
             with psycopg.connect(dbOpt) as db: self.__loadFile(db, fn)
