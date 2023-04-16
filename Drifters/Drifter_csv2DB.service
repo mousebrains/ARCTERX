@@ -20,6 +20,9 @@ WorkingDirectory=/home/pat/ARCTERX/Drifters
 ExecStart=/home/pat/ARCTERX/Drifters/csv2DB.py \
 	--logfile=/home/pat/logs/Drifter.csv2DB.log \
 	--verbose
+
+Restart=always
+RestartSec=60
         
 [Install]
 WantedBy=multi-user.target
