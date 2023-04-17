@@ -3,30 +3,15 @@
 <head>
  <link rel="stylesheet" href="css/leaflet.css" />
  <link rel="stylesheet" href="css/leaflet-ruler.css" />
- <link rel="stylesheet" href="css/L.Control.MousePosition.css" />
+ <link rel="stylesheet" href="css/SitA.css" />
  <script src="js/leaflet.js"></script>
  <script src="js/leaflet-ruler.js"></script>
- <script src="js/L.Control.MousePosition.js"></script>
+ <script src="js/SitA.js"></script>
  <title>ARCTERX</title>
 </head>
 <body style="height: 100%">
 <div id="map" style="width: 100%; height: 99%;"></div>
 <script>
-L.LatLng.prototype.bearingTo = function(other) {
-	console.log("this " + this.lat + " " + this.lng)
-	console.log("other " + other.lat + " " + other.lng)
-    var d2r  = Math.PI / 180;
-    var lat1 = this.lat * d2r;
-    var lat2 = other.lat * d2r;
-    var dLon = (other.lng-this.lng) * d2r;
-    var y    = Math.sin(dLon) * Math.cos(lat2);
-    var x    = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
-    var brng = Math.atan2(y, x);
-    brng = parseInt( brng * 180 * Math.PI );
-    brng = (brng + 360) % 360;
-    return brng;
-};
-
 var gebcoMap = L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer//tile/{z}/{y}/{x}.png",
 	{
 		maxZoom: 10,
@@ -64,7 +49,8 @@ var overlayMaps = {
 
 var map = L.map("map", {
 	center: [7.5150, 134.5825], 
-	zoom: 10,
+	// zoom: 10,
+	zoom: 5,
 	layers: [gebcoMap],
 });
 
@@ -81,76 +67,85 @@ var rulerOptions = {
         };
 L.control.ruler(rulerOptions).addTo(map);
 
+var colors = {
+	Thompson: "red",
+	drifter: "blue",
+};
+
 var ships = {};
 var assets = {};
-var names = {};
+var openPopups = new Set();
 
-var marker0 = L.circleMarker([7.5150, 134.5825], {
-	radius: 10,
-	opacity: 0.5,
-	fillOopacity: 0.5,
-	color: "red",
-	fillColor: "red",
-	fillOpacity: 0.5,
-});
-names[marker0] = "Thompson";
-ships[marker0] = names[marker0] + "<br>Speed 8.2 knots<br>Heading 145"
-marker0.addTo(map).bindPopup(ships[marker0]);
+mkPopupText = function(popup) {
+	var marker = popup._source;
+	var myPos = marker.getLatLng();
+	var item = marker.options["item"];
+	var t = new Date(item["t"] * 1000);
+	var txt = "<center>" + item["key"] + ": " + item["ident"];
+	txt += "<br>" + t.toUTCString();
+	for (var shp in ships) {
+		console.log(shp + " '" + item["key"] + "' '" + item["ident"] + "'");
+		var a = ships[shp];
+		if ((item["key"] == "ship") && (item["ident"] == a["ident"])) continue;
+		var shipPos = a["marker"].getLatLng();
+		var dist = myPos.distanceTo(shipPos) / 1852; // Nautical Miles
+		var bearing = myPos.bearingTo(shipPos);
+		txt += "<br>From " + a["ident"] 
+			+ " " + dist.toFixed(2) 
+			+ " NM " + bearing.toFixed(0) + " deg true";
+	}
 
-var marker1 = L.circleMarker([8.0150, 134.5825], {
-	radius: 10,
-	opacity: 0.5,
-	fillOopacity: 0.5,
-	color: "blue",
-	fillColor: "blue",
-	fillOpacity: 0.5,
-});
-names[marker1] = "Drifter foo";
-assets[marker1] = names[marker1];
-marker1.addTo(map).bindPopup(assets[marker1]);
+	txt += "</center>";
 
-var openPopups = {};
+	popup.setContent(txt);
+};
 
 map.on("popupopen", function(e) {
-	console.log("Popup Open");
 	var popup = e.popup;
-	var marker = popup._source;
-	var myLatlng = popup.getLatLng();
-	var txt = marker in assets ? assets[marker] : ships[marker];
-	console.log(txt);
-	for (var other in ships) {
-		console.log(other);
-		var otherName = names[other];
-		var otherLatLng = other.getLatLng();
-		var dist = myLatLng.distanceTo(otherLatLng) / 1852; // Nautical Miles
-		var bearing = myLatLng.bearingTo(other.getLatLng())
-		txt += "<br>" + otherName + " dist=" + dist.toFixed(2) + "NM bearing=" + bearing.toFixed(0) + " deg true";
-		console.log(txt)
-	}
-	popup.setContent(txt);
+	openPopups.add(popup);
+	mkPopupText(popup);
 });
 
 map.on("popupclose", function(e) {
-	console.log("Popup Close");
-	console.log(e.popup._source);
+	openPopups.delete(e.popup);
 });
-// <br>distance: "
-	// + (marker1.getLatLng().distanceTo(marker0.getLatLng()) / 1852)
-	// + " nm<br> bearing: "
-	// + marker0.getLatLng().bearingTo(marker1.getLatLng())
-	// + " deg true");
 
-// function myFunc() {
-	// var t = new Date;
-	// marker1.getPopup().setContent(t.toISOString());
-	// console.log("myFunc " + t.toISOString());
-// }
-</script>
-<script>
 const posSource = new EventSource("pos.php");
 posSource.onmessage = (event) => {
-	console.log(event.data);
-};
+	var data = JSON.parse(event.data);
+	console.log(data);
+	for (var key in data) {
+		data[key].forEach(function(row) {
+			var ident = row["id"];
+			var t = row["t"];
+			var pos = new L.LatLng(row["lat"], row["lon"]);
+			var item = key == "ship" ? ships : assets;
+			if (ident in item) {
+				item[ident]["t"] = t;
+				item[ident]["pos"] = pos;
+				item[ident]["marker"].setLatLng(pos);
+			} else {
+				var color = (ident in colors) ? colors[ident] :
+					(key in colors) ? colors[key] : "cadetblue";
+				item[ident] = {key: key, ident: ident, t: t, pos: pos};
+				item[ident]["marker"] = L.circleMarker(pos, {
+					radius: 10,
+					opacity: 0.5,
+					fillOopacity: 0.5,
+					color: color,
+					fillColor: color,
+					fillOpacity: 0.5,
+					item: item[ident],
+				});
+				item[ident]["marker"].addTo(map).bindPopup(key + ": " + ident,
+					{
+						closeOnClick: false,
+						autoClose: false,
+					});
+			}
+		});
+	}
+} // onmessage
 </script>
 </body>
 </html>

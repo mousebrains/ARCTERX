@@ -46,3 +46,18 @@ L.Map.addInitHook(function () {
 L.control.mousePosition = function (options) {
     return new L.Control.MousePosition(options);
 };
+
+L.LatLng.prototype.bearingTo = function(other) {
+	var d2r  = Math.PI / 180;
+	var dLon = (this.lng - other.lng) * d2r;
+	var lat1 = other.lat * d2r;
+	var lat2 = this.lat * d2r;
+	var clat1 = Math.cos(lat1);
+	var slat1 = Math.sin(lat1);
+	var clat2 = Math.cos(lat2);
+	var slat2 = Math.sin(lat2);
+	var y = Math.sin(dLon) * clat2;
+	var x = clat2 * slat2 - slat1 * clat2 * Math.cos(dLon);
+	var bearing = Math.atan2(y, x) * 180 / Math.PI;
+	return (bearing + 360) % 360;
+};
