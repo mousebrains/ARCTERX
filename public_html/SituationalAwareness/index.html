@@ -4,6 +4,7 @@
  <link rel="stylesheet" href="css/leaflet.css" />
  <link rel="stylesheet" href="css/leaflet-ruler.css" />
  <link rel="stylesheet" href="css/SitA.css" />
+ <script src="js/jquery-3.6.4.slim.min.js"></script>
  <script src="js/leaflet.js"></script>
  <script src="js/leaflet-ruler.js"></script>
  <script src="js/SitA.js"></script>
@@ -74,14 +75,17 @@ var colors = {
 
 var ships = {};
 var assets = {};
-var openPopups = new Set();
+var openPopups = {};
 
 mkPopupText = function(popup) {
+	console.log("mkPopupText");
+	console.log(popup);
 	var marker = popup._source;
 	var myPos = marker.getLatLng();
 	var item = marker.options["item"];
 	var t = new Date(item["t"] * 1000);
 	var txt = "<center>" + item["key"] + ": " + item["ident"];
+	txt += "<br>" + myPos.lat.toFixed(6) + " " + myPos.lng.toFixed(6);
 	txt += "<br>" + t.toUTCString();
 	for (var shp in ships) {
 		console.log(shp + " '" + item["key"] + "' '" + item["ident"] + "'");
@@ -102,12 +106,17 @@ mkPopupText = function(popup) {
 
 map.on("popupopen", function(e) {
 	var popup = e.popup;
-	openPopups.add(popup);
+	var marker = popup._source;
+	var item = marker.options["item"];
 	mkPopupText(popup);
+	openPopups[item["popupID"]] = popup;
 });
 
 map.on("popupclose", function(e) {
-	openPopups.delete(e.popup);
+	var popup = e.popup;
+	var marker = popup._source;
+	var item = marker.options["item"];
+	delete openPopups[item["popupID"]];
 });
 
 const posSource = new EventSource("pos.php");
@@ -124,10 +133,19 @@ posSource.onmessage = (event) => {
 				item[ident]["t"] = t;
 				item[ident]["pos"] = pos;
 				item[ident]["marker"].setLatLng(pos);
+				for (popupID in openPopups) {
+					mkPopupText(openPopups[popupID]);
+				}
 			} else {
 				var color = (ident in colors) ? colors[ident] :
 					(key in colors) ? colors[key] : "cadetblue";
-				item[ident] = {key: key, ident: ident, t: t, pos: pos};
+				item[ident] = {
+					key: key, 
+					ident: ident, 
+					t: t,
+					pos: pos,
+					popupID: key + "_" + ident
+				};
 				item[ident]["marker"] = L.circleMarker(pos, {
 					radius: 10,
 					opacity: 0.5,
@@ -137,7 +155,9 @@ posSource.onmessage = (event) => {
 					fillOpacity: 0.5,
 					item: item[ident],
 				});
-				item[ident]["marker"].addTo(map).bindPopup(key + ": " + ident,
+				item[ident]["marker"].addTo(map).bindPopup(
+					"<div id='" + item[ident]["divID"] + "'>" + 
+					key + ": " + ident + "</div>",
 					{
 						closeOnClick: false,
 						autoClose: false,
