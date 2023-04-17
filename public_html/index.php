@@ -5,6 +5,7 @@
 </head>
 <body>
 <ul>
+<li><a href="SituationalAwareness">Situational Awareness Map</a></li>
 <?php
 if (is_dir("AVISO")) {
 	echo "<li><a href='AVISO'>AVISO</a></li>\n";
