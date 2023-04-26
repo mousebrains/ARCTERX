@@ -3,8 +3,11 @@ CREATE TABLE IF NOT EXISTS ship ( -- R/V Thompson
   t TIMESTAMP WITH TIME ZONE,
   lat DOUBLE PRECISION, -- May be null, but other data should not be
   lon DOUBLE PRECISION,
-  spd DOUBLE PRECISION,
-  hdg DOUBLE PRECISION,
+  sog DOUBLE PRECISION,
+  cog DOUBLE PRECISION,
+  dilution DOUBLE PRECISION,
+  altitude DOUBLE PRECISION,
+  height DOUBLE PRECISION,
   qCSV BOOLEAN DEFAULT FALSE,
   PRIMARY KEY(t, id)
 );
