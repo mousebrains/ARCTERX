@@ -68,7 +68,7 @@ var rulerOptions = {
 L.control.ruler(rulerOptions).addTo(map);
 
 var colors = {
-	Thompson: "red",
+	TGT: "#FF69B4",
 	drifter: "blue",
 };
 
@@ -137,7 +137,7 @@ posSource.onmessage = (event) => {
 				}
 			} else {
 				var color = (ident in colors) ? colors[ident] :
-					(key in colors) ? colors[key] : "cadetblue";
+					(key in colors) ? colors[key] : "gree";
 				item[ident] = {
 					key: key, 
 					ident: ident, 
@@ -147,11 +147,10 @@ posSource.onmessage = (event) => {
 				};
 				item[ident]["marker"] = L.circleMarker(pos, {
 					radius: 10,
-					opacity: 0.5,
-					fillOopacity: 0.5,
 					color: color,
 					fillColor: color,
-					fillOpacity: 0.5,
+					opacity: 0.75,
+					fillOpacity: 0.75,
 					item: item[ident],
 				});
 				item[ident]["marker"].addTo(map).bindPopup(
