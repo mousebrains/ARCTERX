@@ -76,6 +76,14 @@ var ships = {};
 var assets = {};
 var openPopups = {};
 
+mkDegMin = function(val) {
+       var signOfVal = val < 0 ? -1 : 1;
+       val = Math.abs(val);
+       var deg = Math.floor(val);
+       var minutes = (val - deg) * 60;
+       return signOfVal * (deg * 100 + minutes);
+}
+
 mkPopupText = function(popup) {
 	console.log("mkPopupText");
 	console.log(popup);
@@ -85,7 +93,15 @@ mkPopupText = function(popup) {
 	var t = new Date(item["t"] * 1000);
 	var txt = "<center>" + item["key"] + ": " + item["ident"];
 	txt += "<br>" + myPos.lat.toFixed(6) + " " + myPos.lng.toFixed(6);
+	txt += "<br>" + mkDegMin(myPos.lat).toFixed(4) + " " + mkDegMin(myPos.lng).toFixed(4);
 	txt += "<br>" + t.toUTCString();
+	if ("tPrev" in item) {
+		var dt = (item["t"] - item["tPrev"]) / 3600;
+		var dist = item["posPrev"].distanceTo(item["pos"]) / 1852;
+		var bearing = item["posPrev"].bearingTo(item["pos"]);
+		txt += "<br>Spd" + (dist / dt).toFixed(2) + " kts Hdg "
+			+ bearing.toFixed(0) + " deg true";
+	}
 	for (var shp in ships) {
 		console.log(shp + " '" + item["key"] + "' '" + item["ident"] + "'");
 		var a = ships[shp];
@@ -129,6 +145,8 @@ posSource.onmessage = (event) => {
 			var pos = new L.LatLng(row["lat"], row["lon"]);
 			var item = key == "ship" ? ships : assets;
 			if (ident in item) {
+				item[ident]["tPrev"] = item[ident]["t"];
+				item[ident]["posPrev"] = new L.latLng(item[ident]["pos"]);
 				item[ident]["t"] = t;
 				item[ident]["pos"] = pos;
 				item[ident]["marker"].setLatLng(pos);
