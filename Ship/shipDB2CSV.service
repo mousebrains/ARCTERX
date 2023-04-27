@@ -1,0 +1,28 @@
+#
+# From a database, generate/update a CSV file with ship's position information
+#
+# sudo cp shipDB2CSV.service /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable shipDB2CSV.service
+# sudo systemctl start shipDB2CSV.service
+#
+# Apr-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Ship's CSV to DB
+
+[Service]
+# Launced by timer
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Ship
+#
+ExecStart=/home/pat/ARCTERX/Ship/db2csv.py \
+	--logfile=/home/pat/logs/shipDB2CSV.log \
+	--verbose
+
+Restart=always
+RestartSec=60
+        
+[Install]
+WantedBy=multi-user.target
