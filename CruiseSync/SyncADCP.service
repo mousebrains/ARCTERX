@@ -20,11 +20,7 @@ Type=oneshot
 User=pat
 WorkingDirectory=/home/pat/ARCTERX/CruiseSync
 #
-ExecStart=/home/pat/ARCTERX/CruiseSync/syncADCP.py \
-	--logfile=/home/pat/logs/SyncADCP.log \
-	--mailTo="pat@mousebrains.com" \
-	--mailSubject="Sync ADCP" \
-	--verbose
+ExecStart=/home/pat/ARCTERX/CruiseSync/syncADCPs.sh
         
 [Install]
 WantedBy=multi-user.target
