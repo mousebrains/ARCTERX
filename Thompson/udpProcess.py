@@ -21,9 +21,13 @@ class Consumer(Thread):
         Thread.__init__(self, "CON", args)
         self.__queue = queue.Queue()
         self.__ship = args.ship
+        self.__gap = datetime.timedelta(seconds=args.gap)
+        self.__tRMC = None
+        self.__tGGA = None
 
     @staticmethod
     def addArgs(parser:ArgumentParser) -> None:
+        parser.add_argument("--gap", type=int, default=60, help="Seconds between db updates")
         parser.add_argument("--db", type=str, default="arcterx", help="Database name to work on")
         parser.add_argument("--ship", type=str, default="TGT", help="Vessel name")
 
@@ -104,12 +108,16 @@ class Consumer(Thread):
 
         tFix = datetime.datetime.combine(dFix.date(), tFix.time(), tzinfo=datetime.timezone.utc)
 
+        if self.__tRMC and tFix < self.__tRMC: return
+        self.__tRMC = tFix + self.__gap # When to write next time
+
         self.__dbUpdate(db, tFix, info)
 
     def __GGA(self, port:int, t:datetime.datetime, ipv4:str, sport, fields:list, db) -> None:
         info = {}
         tFix = self.__decodeFixTime(t, fields[1])
         if tFix is None: return
+
         info["lat"] = self.__decodeDegMin(fields[2], fields[3])
         info["lon"] = self.__decodeDegMin(fields[4], fields[5])
         fixQuality = int(fields[6]) if fields[6] else None
@@ -117,6 +125,9 @@ class Consumer(Thread):
         info["dilution"] = float(fields[8]) if fields[8] else None
         info["altitude"] = float(fields[9]) if fields[9] else None
         info["height"] = float(fields[11]) if fields[11] else None
+
+        if self.__tGGA and tFix < self.__tGGA: return
+        self.__tGGA = tFix + self.__gap # When to write next time
 
         self.__dbUpdate(db, tFix, info)
 
