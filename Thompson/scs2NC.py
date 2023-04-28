@@ -149,7 +149,7 @@ def loadFile(fn:str, pos:int) -> tuple:
             val = procLine(line, codigo)
             if val: items.append(val)
         pos = fp.tell()
-    if not items: return (None, None) # In case there is nothing
+    if not items: return (None, pos) # In case there is nothing
     df = pd.DataFrame(items)
     return (df, pos)
 
@@ -199,7 +199,6 @@ def loadIt(paths:list, nc:str, dbName:str) -> None:
                 tBase = getTimeOffset(nc)
                 for df in frames: saveDataframe(nc, df, tBase)
 
-            break # TPW
         db.commit()
 
 if __name__ == "__main__":
