@@ -10,24 +10,35 @@ import glob
 import datetime
 import math
 import re
+import time
 import numpy as np
 import pandas as pd
 from mkNC import createNetCDF
 from netCDF4 import Dataset
+import psycopg
 
-def mkFilenames(paths:tuple) -> dict:
+def mkFilenames(paths:tuple, cur) -> dict:
     regexp = re.compile("^(FLUOROMETER|SS|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR)-RAW_(\d+)-\d+.Raw$")
+    sql = "SELECT position FROM fileposition WHERE filename=%s;"
     info = {}
     for path in paths:
-        for fn in glob.glob(os.path.join(path, "*.Raw")):
+        for fn in glob.glob(os.path.join(path, "*", "*.Raw")):
             name = os.path.basename(fn)
             matches = regexp.match(name)
             if not matches:
                 continue
+
+            cur.execute(sql, (fn,))
+            pos = None
+            for row in cur:
+                pos = row[0]
+                break
+
+            if pos == os.path.getsize(fn): continue
+
             date = datetime.datetime.strptime(matches[3], "%Y%m%d").date()
-            if date not in info:
-                info[date] = set()
-            info[date].add(fn)
+            if date not in info: info[date] = {}
+            info[date][fn] = pos
     return info
 
 def decodeDegMin(degMin:str, direction:str) -> float:
@@ -158,27 +169,38 @@ def getTimeOffset(nc) -> np.int64:
     return np.datetime64(units[index:])
 
 def loadIt(paths:list, nc:str, dbName:str) -> None:
-    filenames = mkFilenames(paths)
+    sql = "INSERT INTO filePosition VALUES (%s, %s)"
+    sql+= " ON CONFLICT (filename) DO UPDATE SET position=EXCLUDED.position;"
 
-    for date in sorted(filenames):
-        logging.info("Working on %s", date)
-        frames = []
-        for fn in filenames[date]:
-            logging.info("Working on %s", fn)
-            (df, pos) = loadFile(fn, None)
-            if df is not None and not df.empty: frames.append(df)
+    with psycopg.connect(f"dbname={dbName}") as db:
+        cur = db.cursor()
+        filenames = mkFilenames(paths, cur)
+        for date in sorted(filenames): print(date, len(filenames[date]))
 
-        if not os.path.isfile(args.nc):
-            tMin = None
-            for df in frames:
-                tMin = df.t.min() if tMin is None else min(tMin, df.t.min())
-            createNetCDF(args.nc, tMin.to_datetime64())
+        cur.execute("BEGIN TRANSACTION;")
 
-        with Dataset(args.nc, "a") as nc:
-            tBase = getTimeOffset(nc)
-            for df in frames: saveDataframe(nc, df, tBase)
+        for date in sorted(filenames):
+            logging.info("Working on %s", date)
+            frames = []
+            for fn in filenames[date]:
+                logging.info("Working on %s", fn)
+                (df, pos) = loadFile(fn, filenames[date][fn])
+                cur.execute(sql, (fn, pos))
+                if df is not None and not df.empty: 
+                    frames.append(df)
+    
+            if not os.path.isfile(nc):
+                tMin = None
+                for df in frames:
+                    tMin = df.t.min() if tMin is None else min(tMin, df.t.min())
+                createNetCDF(nc, tMin.to_datetime64())
 
-        break
+            with Dataset(nc, "a") as nc:
+                tBase = getTimeOffset(nc)
+                for df in frames: saveDataframe(nc, df, tBase)
+
+            break # TPW
+        db.commit()
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -188,19 +210,14 @@ if __name__ == "__main__":
     Logger.addArgs(parser)
     parser.add_argument("directory", type=str, nargs="+", help="Directories to look in")
     parser.add_argument("--nc", type=str, required=True, help="Output filename")
-    parser.add_argument("--delay", type=int, default=900, help="Time between updates")
     parser.add_argument("--db", type=str, default="arcterx", help="Database name")
     args = parser.parse_args()
 
     Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
 
+    args.nc = os.path.abspath(os.path.expanduser(args.nc))
+    directories = []
+    for directory in args.directory:
+        directories.append(os.path.abspath(os.path.expanduser(directory)))
 
-    loadIt(args.directory, args.nc, args.db)
-
-    tNext = time.time() + args.delay
-    while True:
-        dt = max(0.1, tNext - time.time())
-        tNext += args.delay
-        logging.info("Sleeping for %s seconds", dt)
-        time.sleep(dt)
-        loadIt(args.directory, args.nc, args.db)
+    loadIt(directories, args.nc, args.db)
