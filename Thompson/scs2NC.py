@@ -6,14 +6,29 @@
 
 import logging
 import os.path
+import glob
 import datetime
 import math
+import re
 import numpy as np
 import pandas as pd
+from mkNC import createNetCDF
 from netCDF4 import Dataset
 
-tRef = int(datetime.datetime.strptime("2023-04-15 00:00:00", "%Y-%m-%d %H:%M:%S").replace(
-    tzinfo=datetime.timezone.utc).timestamp())
+def mkFilenames(paths:tuple) -> dict:
+    regexp = re.compile("^(FLUOROMETER|SS|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR)-RAW_(\d+)-\d+.Raw$")
+    info = {}
+    for path in paths:
+        for fn in glob.glob(os.path.join(path, "*.Raw")):
+            name = os.path.basename(fn)
+            matches = regexp.match(name)
+            if not matches:
+                continue
+            date = datetime.datetime.strptime(matches[3], "%Y%m%d").date()
+            if date not in info:
+                info[date] = set()
+            info[date].add(fn)
+    return info
 
 def decodeDegMin(degMin:str, direction:str) -> float:
     degMin = float(degMin)
@@ -85,19 +100,24 @@ def procLine(line:str, codigo:str=None) -> dict:
     if not line: return None
     fields = line.strip().split(",")
     if len(fields) < 3: return None
-    t = datetime.datetime.strptime(fields[0] + " " + fields[1],
-                                   "%m/%d/%Y %H:%M:%S.%f").replace(tzinfo=datetime.timezone.utc)
-    tt = t.replace(microsecond=0)
-    if t.microsecond >= 500000: tt += datetime.timedelta(seconds=1)
+    try:
+        t = datetime.datetime.strptime(fields[0] + " " + fields[1], "%m/%d/%Y %H:%M:%S.%f")
+        tt = t.replace(microsecond=0)
+        if t.microsecond >= 500000: tt += datetime.timedelta(seconds=1)
+        t  = np.datetime64(t)
+        tt = np.datetime64(tt)
+        dt = (t - tt).astype("timedelta64[ms]").astype(float) / 1000
 
-    codigo = fields[2] if codigo is None else codigo
+        codigo = fields[2] if codigo is None else codigo
 
-    if codigo not in codigos:
-        logging.warning("Unsupported record type, %s", codigo)
-        return None
+        if codigo not in codigos:
+            logging.warning("Unsupported record type, %s", codigo)
+            return None
 
-    val = codigos[codigo](fields)
-    return ({"t": tt, "dt": (t - tt).total_seconds()} | val) if val else None
+        val = codigos[codigo](fields)
+        return ({"t": tt, "dt": dt} | val) if val else None
+    except:
+        logging.exception("codigo %s Fields %s", codigo, fields)
 
 def loadFile(fn:str, pos:int) -> tuple:
     basename = os.path.basename(fn)
@@ -122,16 +142,43 @@ def loadFile(fn:str, pos:int) -> tuple:
     df = pd.DataFrame(items)
     return (df, pos)
 
-def saveDataframe(nc, df) -> None:
-    t = df.t.map(pd.Timestamp.timestamp).astype(np.int64) # Unix seconds
-    t -= tRef
+def saveDataframe(nc, df:pd.DataFrame, tBase:np.int64) -> None:
+    t = (df.t - tBase).astype("timedelta64[s]").astype(np.int64)
 
     nc.variables["t"][t] = t
 
     for key in df:
         if key in ["t", "dt"]: continue
         nc.variables[key][t] = df[key].to_numpy()
-    
+   
+def getTimeOffset(nc) -> np.int64:
+    units = nc.variables["t"].getncattr("units")
+    since = "since "
+    index = units.find(since) + len(since)
+    return np.datetime64(units[index:])
+
+def loadIt(paths:list, nc:str, dbName:str) -> None:
+    filenames = mkFilenames(paths)
+
+    for date in sorted(filenames):
+        logging.info("Working on %s", date)
+        frames = []
+        for fn in filenames[date]:
+            logging.info("Working on %s", fn)
+            (df, pos) = loadFile(fn, None)
+            if df is not None and not df.empty: frames.append(df)
+
+        if not os.path.isfile(args.nc):
+            tMin = None
+            for df in frames:
+                tMin = df.t.min() if tMin is None else min(tMin, df.t.min())
+            createNetCDF(args.nc, tMin.to_datetime64())
+
+        with Dataset(args.nc, "a") as nc:
+            tBase = getTimeOffset(nc)
+            for df in frames: saveDataframe(nc, df, tBase)
+
+        break
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -139,17 +186,21 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
     Logger.addArgs(parser)
-    parser.add_argument("nc", type=str, help="NetCDF filename")
-    parser.add_argument("file", type=str, nargs="+", help="Filename(s) of TWIND file")
+    parser.add_argument("directory", type=str, nargs="+", help="Directories to look in")
+    parser.add_argument("--nc", type=str, required=True, help="Output filename")
+    parser.add_argument("--delay", type=int, default=900, help="Time between updates")
+    parser.add_argument("--db", type=str, default="arcterx", help="Database name")
     args = parser.parse_args()
 
     Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
 
-    frames = []
-    for fn in args.file:
-        (df, pos) = loadFile(fn, None)
-        if not df.empty: frames.append(df)
 
-    with Dataset(args.nc, "a") as nc:
-        for df in frames:
-            saveDataframe(nc, df)
+    loadIt(args.directory, args.nc, args.db)
+
+    tNext = time.time() + args.delay
+    while True:
+        dt = max(0.1, tNext - time.time())
+        tNext += args.delay
+        logging.info("Sleeping for %s seconds", dt)
+        time.sleep(dt)
+        loadIt(args.directory, args.nc, args.db)
