@@ -54,7 +54,27 @@ def createNetCDF(fn:str, tBase:np.datetime64) -> None:
             ))
         nc.createVariable("Tair", "f4", "t", zlib=True).setncatts(dict(
             units="C",
-            comment="Air temperature from PAR",
+            comment="Air temperature",
+            _FillValue=np.single(np.nan)
+            ))
+        nc.createVariable("RH", "f4", "t", zlib=True).setncatts(dict(
+            units="%",
+            comment="Relative Humidity",
+            _FillValue=np.single(np.nan)
+            ))
+        nc.createVariable("Pair", "f4", "t", zlib=True).setncatts(dict(
+            units="mb",
+            comment="Air Pressure",
+            _FillValue=np.single(np.nan)
+            ))
+        nc.createVariable("shortWave", "f4", "t", zlib=True).setncatts(dict(
+            units="W/m^2",
+            comment="Shortwave radiation",
+            _FillValue=np.single(np.nan)
+            ))
+        nc.createVariable("longWave", "f4", "t", zlib=True).setncatts(dict(
+            units="W/m^2",
+            comment="Longwave radiation",
             _FillValue=np.single(np.nan)
             ))
         nc.createVariable("spdSound", "f4", "t", zlib=True).setncatts(dict(

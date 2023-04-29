@@ -16,9 +16,10 @@ import pandas as pd
 from mkNC import createNetCDF
 from netCDF4 import Dataset
 import psycopg
+import sys
 
 def mkFilenames(paths:tuple, cur) -> dict:
-    regexp = re.compile("^(FLUOROMETER|SS|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR)-RAW_(\d+)-\d+.Raw$")
+    regexp = re.compile("^(FLUOROMETER|SS|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR|BOW-MET|RAD)-RAW_(\d+)-\d+.Raw$")
     sql = "SELECT position FROM fileposition WHERE filename=%s;"
     info = {}
     for path in paths:
@@ -78,7 +79,6 @@ def procVTG(fields:tuple) -> dict:
 def procPAR(fields:tuple) -> dict:
     return {
             "par": decodeFloat(fields[3]),
-            "Tair": decodeFloat(fields[4]),
             }
 
 def procSpeedOfSound(fields:tuple) -> dict:
@@ -106,11 +106,26 @@ def procFluorometer(fields:tuple) -> dict:
             "flThermistor": int(items[5]),
             }
 
+def procBowMet(fields:tuple) -> dict:
+    return {
+            "Tair": decodeFloat(fields[5]),
+            "RH": decodeFloat(fields[6]),
+            "Pair": decodeFloat(fields[7]),
+            }
+
+def procRadiation(fields:tuple) -> dict:
+    return {
+            "longWave": decodeFloat(fields[7]),
+            "shortWave": decodeFloat(fields[10]),
+            }
+
 codigos = {
         "$TWIND": procTWind,
         "$GPGGA": procGGA,
         "$GPVTG": procVTG,
         "$PPAR": procPAR,
+        "$METED": procBowMet,
+        "$WIR37": procRadiation,
         "SBE38": procSBE38,
         "TSG": procTSG,
         "SS": procSpeedOfSound,
@@ -141,17 +156,20 @@ def procLine(line:str, codigo:str=None) -> dict:
         logging.exception("codigo %s Fields %s", codigo, fields)
 
 def loadFile(fn:str, pos:int) -> tuple:
+    mapping = {
+            "TSG-": "TSG",
+            "SBE38-": "SBE38",
+            "SS-": "SS",
+            "FLUOROMETER-": "FLUOR",
+            }
+
     basename = os.path.basename(fn)
-    if basename.startswith("TSG-"):
-        codigo = "TSG"
-    elif basename.startswith("SBE38-"):
-        codigo = "SBE38"
-    elif basename.startswith("SS-"):
-        codigo = "SS"
-    elif basename.startswith("FLUOROMETER-"):
-        codigo = "FLUOR"
-    else:
-        codigo = None
+    codigo = None
+    for prefix in mapping:
+        if basename.startswith(prefix):
+            codigo = mapping[prefix]
+            break
+
     items = []
     with open(fn, "r") as fp:
         if pos: fp.seek(pos)
