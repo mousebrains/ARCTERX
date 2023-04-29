@@ -179,7 +179,7 @@ class Listener(Thread):
                 fields = re.match(b"^([$][A-Z]+,.+)[*]([\d[A-Fa-f]{2})$", sentence)
                 if not fields: continue
                 if not self.__nemaOk(fields[1], fields[2]): continue
-                logging.info("port %s t %s ipv4 %s sport %s\n%s", port, t, ipv4, sport, sentence)
+                # logging.info("port %s t %s ipv4 %s sport %s\n%s", port, t, ipv4, sport, sentence)
                 q.put(port, t, ipv4, sport, str(fields[1], "utf-8"))
 
 class Replay(Thread):
