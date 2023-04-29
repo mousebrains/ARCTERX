@@ -42,7 +42,11 @@ def mkFilenames(paths:tuple, cur) -> dict:
     return info
 
 def decodeDegMin(degMin:str, direction:str) -> float:
-    degMin = float(degMin)
+    try:
+        degMin = float(degMin)
+    except:
+        return None
+
     sgn = -1 if degMin < 0 else 1
     sgn*= -1 if direction.upper() in ("S", "W") else 1
     degMin = abs(degMin)
@@ -50,8 +54,14 @@ def decodeDegMin(degMin:str, direction:str) -> float:
     minutes = degMin % 100
     return sgn * (deg + minutes / 60)
 
+def decodeFloat(val:str) -> float:
+    try:
+        return float(val)
+    except:
+        return None
+
 def procTWind(fields:tuple) -> dict:
-    return {"wSpd": float(fields[3]), "wDir": float(fields[4])}
+    return {"wSpd": decodeFloat(fields[3]), "wDir": decodeFloat(fields[4])}
 
 def procGGA(fields:tuple) -> dict:
     return {
@@ -61,31 +71,31 @@ def procGGA(fields:tuple) -> dict:
 
 def procVTG(fields:tuple) -> dict:
     return {
-            "cog": float(fields[3]),
-            "sog": float(fields[7]),
+            "cog": decodeFloat(fields[3]),
+            "sog": decodeFloat(fields[7]),
             }
 
 def procPAR(fields:tuple) -> dict:
     return {
-            "par": float(fields[3]),
-            "Tair": float(fields[4]),
+            "par": decodeFloat(fields[3]),
+            "Tair": decodeFloat(fields[4]),
             }
 
 def procSpeedOfSound(fields:tuple) -> dict:
     return {
-            "spdSound": float(fields[2]),
+            "spdSound": decodeFloat(fields[2]),
             }
 
 def procSBE38(fields:tuple) -> dict:
     return {
-            "Tinlet": float(fields[2]),
+            "Tinlet": decodeFloat(fields[2]),
             }
 
 def procTSG(fields:tuple) -> dict:
     return {
-            "Ttsg": float(fields[2]),
-            "cond": float(fields[3]),
-            "salinity": float(fields[4]),
+            "Ttsg": decodeFloat(fields[2]),
+            "cond": decodeFloat(fields[3]),
+            "salinity": decodeFloat(fields[4]),
             }
 
 def procFluorometer(fields:tuple) -> dict:
