@@ -1,0 +1,29 @@
+#
+# copy ship.nc file
+#
+# N.B. This has two components, SyncMet.service and SyncMet.timer
+#
+# sudo cp SyncMet.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SyncMet.timer SyncMet.service
+# sudo systemctl start SyncMet.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Sync ship.nc file
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/CruiseSync
+#
+ExecStart=/home/pat/ARCTERX/CruiseSync/syncMet.py \
+	--verbose \
+	--logfile=/home/pat/logs/syncMet.log
+        
+[Install]
+WantedBy=multi-user.target
+
