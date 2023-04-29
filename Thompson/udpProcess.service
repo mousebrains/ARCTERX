@@ -16,7 +16,6 @@ ReadWritePaths=/home/pat/logs
 ReadOnlyPaths=/
 
 ExecStart=/home/pat/ARCTERX/Thompson/udpProcess.py \
-	--verbose \
 	--logfile=/home/pat/logs/udpProcess.log \
 	55555
 
