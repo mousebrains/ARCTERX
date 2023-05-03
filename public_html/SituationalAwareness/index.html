@@ -48,10 +48,9 @@ var overlayMaps = {
 };
 
 var map = L.map("map", {
-	center: [7.5150, 134.5825], 
-	// zoom: 10,
-	zoom: 5,
-	layers: [gebcoMap],
+	center: [6.9440, 134.193],  // Hydrographer Bank, Palau
+	zoom: 12,
+	layers: [satMap],
 });
 
 L.control.mousePosition().addTo(map);
@@ -85,8 +84,6 @@ mkDegMin = function(val) {
 }
 
 mkPopupText = function(popup) {
-	console.log("mkPopupText");
-	console.log(popup);
 	var marker = popup._source;
 	var myPos = marker.getLatLng();
 	var item = marker.options["item"];
@@ -103,7 +100,6 @@ mkPopupText = function(popup) {
 			+ bearing.toFixed(0) + " deg true";
 	}
 	for (var shp in ships) {
-		console.log(shp + " '" + item["key"] + "' '" + item["ident"] + "'");
 		var a = ships[shp];
 		if ((item["key"] == "ship") && (item["ident"] == a["ident"])) continue;
 		var shipPos = a["marker"].getLatLng();
@@ -137,8 +133,10 @@ map.on("popupclose", function(e) {
 const posSource = new EventSource("pos.php");
 posSource.onmessage = (event) => {
 	var data = JSON.parse(event.data);
+	var qShip = false;
 	console.log(data);
 	for (var key in data) {
+		qShip |= key == "ship";
 		data[key].forEach(function(row) {
 			var ident = row["id"];
 			var t = row["t"];
@@ -180,6 +178,19 @@ posSource.onmessage = (event) => {
 					});
 			}
 		});
+	}
+	if (qShip) { // Adjust viewpoint to centroid of ships
+		var lat0 = 0;
+		var lon0 = 0;
+		var cnt = 0;
+		for (var shp in ships) {
+			cnt += 1;
+			lat0 += ships[shp].pos.lat;
+			lon0 += ships[shp].pos.lng;
+		}
+                if (cnt) {
+			map.panTo(new L.latLng(lat0 / cnt, lon0 / cnt));
+		}
 	}
 } // onmessage
 </script>
