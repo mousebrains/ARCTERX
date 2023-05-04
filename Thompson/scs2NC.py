@@ -19,28 +19,33 @@ import psycopg
 import sys
 
 def mkFilenames(paths:tuple, cur) -> dict:
-    regexp = re.compile("^(FLUOROMETER|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR|BOW-MET|RAD)-RAW_(\d+)-\d+.Raw$")
+    patterns = {
+        "MET": re.compile(r"^(SONIC-TWIND|PAR|BOW-MET|RAD)-RAW_([0-9]+)-[0-9]+"),
+        "NAV": re.compile(r"^CNAV3050-(GGA|VTG)-RAW_([0-9]+)-[0-9]+"),
+        "SEAWATER": re.compile(r"^(FLUOROMETER|TSG|SBE38)-RAW_([0-9]+)-[0-9]+"),
+        "SOUNDERS": re.compile(r"^(KNUDSEN-PKEL99-RAW|MB-DEPTH)_([0-9]+)-[0-9]+"),
+        }
+
     sql = "SELECT position FROM fileposition WHERE filename=%s;"
-    info = {}
+
+    items = {}
     for path in paths:
-        for fn in glob.glob(os.path.join(path, "*", "*.Raw")):
-            name = os.path.basename(fn)
-            matches = regexp.match(name)
-            if not matches:
-                continue
+        for subdir in patterns:
+            expr = patterns[subdir]
+            for fn in glob.glob(os.path.join(path, subdir, "*.Raw")):
+                matches = expr.match(os.path.basename(fn))
+                if not matches: continue
+                pos = None
+                cur.execute(sql, (fn,))
+                for row in cur:
+                    pos = row[0]
+                    break
 
-            cur.execute(sql, (fn,))
-            pos = None
-            for row in cur:
-                pos = row[0]
-                break
-
-            if pos == os.path.getsize(fn): continue
-
-            date = datetime.datetime.strptime(matches[3], "%Y%m%d").date()
-            if date not in info: info[date] = {}
-            info[date][fn] = pos
-    return info
+                if pos and os.path.getsize(fn) == pos: continue
+                date = matches[2]
+                if date not in items: items[date] = {}
+                items[date][fn] = (pos, matches[1])
+    return items
 
 def decodeDegMin(degMin:str, direction:str) -> float:
     try:
@@ -119,6 +124,17 @@ def procRadiation(fields:tuple) -> dict:
             "shortWave": decodeFloat(fields[10]),
             }
 
+def procPKEL99(fields:tuple) -> dict:
+    if fields[4] != '0': return None
+    return {
+            "depthKN": decodeFloat(fields[3]),
+            }
+
+def procMBdepth(fields:tuple) -> dict:
+    return {
+            "depthMB": decodeFloat(fields[3]),
+            }
+
 codigos = {
         "$TWIND": procTWind,
         "$GPGGA": procGGA,
@@ -126,10 +142,12 @@ codigos = {
         "$PPAR": procPAR,
         "$METED": procBowMet,
         "$WIR37": procRadiation,
+        "$PKEL99": procPKEL99,
+        "$DEPTH": procMBdepth,
         "SBE38": procSBE38,
         "TSG": procTSG,
         "SS": procSpeedOfSound,
-        "FLUOR": procFluorometer,
+        "FLUOROMETER": procFluorometer,
         }
 
 def procLine(line:str, codigo:str=None) -> dict:
@@ -144,7 +162,7 @@ def procLine(line:str, codigo:str=None) -> dict:
         tt = np.datetime64(tt)
         dt = (t - tt).astype("timedelta64[ms]").astype(float) / 1000
 
-        codigo = fields[2] if codigo is None else codigo
+        if fields[2][0] == "$": codigo = fields[2]
 
         if codigo not in codigos:
             logging.warning("Unsupported record type, %s", codigo)
@@ -155,21 +173,7 @@ def procLine(line:str, codigo:str=None) -> dict:
     except:
         logging.exception("codigo %s Fields %s", codigo, fields)
 
-def loadFile(fn:str, pos:int) -> tuple:
-    mapping = {
-            "TSG-": "TSG",
-            "SBE38-": "SBE38",
-            "SS-": "SS",
-            "FLUOROMETER-": "FLUOR",
-            }
-
-    basename = os.path.basename(fn)
-    codigo = None
-    for prefix in mapping:
-        if basename.startswith(prefix):
-            codigo = mapping[prefix]
-            break
-
+def loadFile(fn:str, pos:int, codigo:str) -> tuple:
     items = []
     with open(fn, "r") as fp:
         if pos: fp.seek(pos)
@@ -211,7 +215,7 @@ def loadIt(paths:list, ncPath:str, dbName:str) -> None:
             cur.execute("BEGIN TRANSACTION;")
             for fn in filenames[date]:
                 t0 = time.time()
-                (df, pos) = loadFile(fn, filenames[date][fn])
+                (df, pos) = loadFile(fn, filenames[date][fn][0], filenames[date][fn][1])
                 t1 = time.time()
                 logging.info("Loaded %s in %s secs, sz %s pos %s", 
                              os.path.basename(fn), round(t1-t0,1), df.t.size, pos)

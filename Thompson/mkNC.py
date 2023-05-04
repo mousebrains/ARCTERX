@@ -107,6 +107,16 @@ def createNetCDF(fn:str, tBase:np.datetime64) -> None:
             comment="Fluorometer thermistor reading",
             _FillValue=np.ushort(65535)
             ))
+        nc.createVariable("depthMB", "f4", "t", zlib=True).setncatts(dict(
+            units="meters",
+            comment="Water depth from multibeam",
+            _FillValue=np.single(np.nan)
+            ))
+        nc.createVariable("depthKN", "f4", "t", zlib=True).setncatts(dict(
+            units="meters",
+            comment="Water depth from Knudsen PKEL99 3.5kHz",
+            _FillValue=np.single(np.nan)
+            ))
     
 if __name__ == "__main__":
     from argparse import ArgumentParser
