@@ -24,7 +24,7 @@ WorkingDirectory=/home/pat/ARCTERX/Thompson
 ExecStart=/home/pat/ARCTERX/Thompson/scs2NC.py \
 	--logfile=/home/pat/logs/scs2NCs.log \
 	--verbose \
-	--nc=/mnt/share/TN417/data/ship/ship.nc \
+	--nc=/mnt/share/TN417/data/ship \
 	/mnt/ship/TN417/scs
         
 [Install]

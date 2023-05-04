@@ -20,9 +20,7 @@ Type=oneshot
 User=pat
 WorkingDirectory=/home/pat/ARCTERX/CruiseSync
 #
-ExecStart=/home/pat/ARCTERX/CruiseSync/syncMet.py \
-	--verbose \
-	--logfile=/home/pat/logs/syncMet.log
+ExecStart=/home/pat/ARCTERX/CruiseSync/syncMet
         
 [Install]
 WantedBy=multi-user.target

@@ -19,7 +19,7 @@ import psycopg
 import sys
 
 def mkFilenames(paths:tuple, cur) -> dict:
-    regexp = re.compile("^(FLUOROMETER|SS|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR|BOW-MET|RAD)-RAW_(\d+)-\d+.Raw$")
+    regexp = re.compile("^(FLUOROMETER|TSG|SBE38|CNAV3050-(GGA|VTG)|SONIC-TWIND|PAR|BOW-MET|RAD)-RAW_(\d+)-\d+.Raw$")
     sql = "SELECT position FROM fileposition WHERE filename=%s;"
     info = {}
     for path in paths:
@@ -196,38 +196,40 @@ def getTimeOffset(nc) -> np.int64:
     index = units.find(since) + len(since)
     return np.datetime64(units[index:])
 
-def loadIt(paths:list, nc:str, dbName:str) -> None:
+def loadIt(paths:list, ncPath:str, dbName:str) -> None:
     sql = "INSERT INTO filePosition VALUES (%s, %s)"
     sql+= " ON CONFLICT (filename) DO UPDATE SET position=EXCLUDED.position;"
 
     with psycopg.connect(f"dbname={dbName}") as db:
         cur = db.cursor()
         filenames = mkFilenames(paths, cur)
-        for date in sorted(filenames): print(date, len(filenames[date]))
-
-        cur.execute("BEGIN TRANSACTION;")
 
         for date in sorted(filenames):
-            logging.info("Working on %s", date)
+            ofn = os.path.join(ncPath, f"ship.{date}.nc")
+            logging.info("Working on %s %s -> %s", date, len(filenames[date]), ofn)
             frames = []
+            cur.execute("BEGIN TRANSACTION;")
             for fn in filenames[date]:
-                logging.info("Working on %s", fn)
+                t0 = time.time()
                 (df, pos) = loadFile(fn, filenames[date][fn])
+                t1 = time.time()
+                logging.info("Loaded %s in %s secs, sz %s pos %s", 
+                             os.path.basename(fn), round(t1-t0,1), df.t.size, pos)
                 cur.execute(sql, (fn, pos))
                 if df is not None and not df.empty: 
                     frames.append(df)
-    
-            if not os.path.isfile(nc):
+   
+            if not os.path.isfile(ofn):
                 tMin = None
                 for df in frames:
                     tMin = df.t.min() if tMin is None else min(tMin, df.t.min())
-                createNetCDF(nc, tMin.to_datetime64())
+                createNetCDF(ofn, tMin.to_datetime64())
 
-            with Dataset(nc, "a") as nc:
+            with Dataset(ofn, "a") as nc:
                 tBase = getTimeOffset(nc)
                 for df in frames: saveDataframe(nc, df, tBase)
 
-        db.commit()
+            db.commit()
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -242,9 +244,12 @@ if __name__ == "__main__":
 
     Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
 
-    args.nc = os.path.abspath(os.path.expanduser(args.nc))
-    directories = []
-    for directory in args.directory:
-        directories.append(os.path.abspath(os.path.expanduser(directory)))
+    try:
+        args.nc = os.path.abspath(os.path.expanduser(args.nc))
+        directories = []
+        for directory in args.directory:
+            directories.append(os.path.abspath(os.path.expanduser(directory)))
 
-    loadIt(directories, args.nc, args.db)
+        loadIt(directories, args.nc, args.db)
+    except:
+        logging.exception("GotMe")

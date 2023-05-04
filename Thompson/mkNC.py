@@ -77,11 +77,6 @@ def createNetCDF(fn:str, tBase:np.datetime64) -> None:
             comment="Longwave radiation",
             _FillValue=np.single(np.nan)
             ))
-        nc.createVariable("spdSound", "f4", "t", zlib=True).setncatts(dict(
-            units="meters/second",
-            comment="Speed of Sound",
-            _FillValue=np.single(np.nan)
-            ))
         nc.createVariable("Tinlet", "f4", "t", zlib=True).setncatts(dict(
             units="C",
             comment="Inlet water temperature from SBE38",
