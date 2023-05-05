@@ -60,9 +60,9 @@ def decodeDegMin(degMin:str, direction:str) -> float:
     minutes = degMin % 100
     return sgn * (deg + minutes / 60)
 
-def decodeFloat(val:str) -> float:
+def decodeFloat(val:str, norm:float=1.0) -> float:
     try:
-        return float(val)
+        return norm * float(val)
     except:
         return None
 
@@ -78,7 +78,7 @@ def procGGA(fields:tuple) -> dict:
 def procVTG(fields:tuple) -> dict:
     return {
             "cog": decodeFloat(fields[3]),
-            "sog": decodeFloat(fields[7]),
+            "sog": decodeFloat(fields[7], 1852/3600), # knots -> meters/sec
             }
 
 def procPAR(fields:tuple) -> dict:
