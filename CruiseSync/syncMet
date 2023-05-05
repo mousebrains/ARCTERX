@@ -5,8 +5,15 @@
 #
 # April-2022, Pat Welch, pat@mousebrains.com
 
-log=~/logs/syncMet.log
+log=/home/pat/logs/syncMet.log
 
 echo >>$log
 date >>$log
-rsync --archive --verbose /mnt/share/TN417/data/ship/ship.*.nc ~/Sync.ARCTERX/Ship/ship 2>&1 >>$log
+echo >>$log
+rsync \
+	--temp-dir=/home/pat/cache \
+	--archive \
+       	--verbose \
+	/mnt/share/TN417/data/ship/ship.*.nc  \
+	/home/pat/Sync.ARCTERX/Ship/ship \
+	2>&1 >>$log
