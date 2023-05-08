@@ -33,10 +33,10 @@ class DB {
 			);
 		$this->tables["glider"] =
 			$db->prepare(
-				"SELECT DISTINCT ON (grp,name) grp,name as id,t,lat,lon"
+				"SELECT DISTINCT ON (grp,id) grp,id,t,lat,lon"
 				. " FROM glider"
 				. " WHERE t>=?"
-				. " ORDER BY grp,name,t DESC;"
+				. " ORDER BY grp,id,t DESC;"
 			);
 
 		$this->latest = array();
@@ -138,7 +138,7 @@ while (True) { # Wait forever
 		if (empty($data)) {
 			echo "data: " . json_encode([]) . "\n\n";
 		} else {
-			echo "data: " . json_encode([$tbl => $data]) . "\n\n";
+			echo "data: " . json_encode($data) . "\n\n";
 		}
         } // if
 } // else
