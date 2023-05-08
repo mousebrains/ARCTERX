@@ -1,0 +1,28 @@
+#
+# Save CSV information into the glider database
+#
+# sudo cp wgCSV2DB.service /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable wgCSV2DB.service
+# sudo systemctl start wgCSV2DB.service
+#
+# Apr-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Glider CSV to DB
+
+[Service]
+# Launced by timer
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/WaveGlider
+#
+ExecStart=/home/pat/ARCTERX/WaveGlider/wgCSV2DB.py \
+	--logfile=/home/pat/logs/wgCSV2DB.log \
+	--verbose
+
+Restart=always
+RestartSec=60
+        
+[Install]
+WantedBy=multi-user.target
