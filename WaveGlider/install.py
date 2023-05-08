@@ -23,10 +23,8 @@ parser.add_argument("--sudo", type=str, default="/usr/bin/sudo",
         help="sudo executable")
 args = parser.parse_args()
 
-if args.service is None:
+if args.service is None and args.timer is None:
     args.service = ["WaveGlider.service"]
-
-if args.timer is None:
     args.timer = ["WaveGlider.timer"]
 
 root = os.path.abspath(os.path.expanduser(args.serviceDirectory))
