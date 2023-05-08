@@ -11,6 +11,13 @@ header('X-Accel-Buffering: no');
 
 class DB {
         private $errors = array(); // Error stack
+	private $toDrop = [
+		// "WG,Ole" => 1,
+		// "WG,Sven" => 1,
+		// "WG,Stallion" => 1,
+		// "WG,Ragnar" => 1,
+	]; // Names to be ignored
+
 
 	function __construct(string $dbName) {
                 $db = new PDO("pgsql:dbname=$dbName;");
@@ -71,6 +78,9 @@ class DB {
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$grp = $row["grp"];
 			$id = $grp . "," . $row["id"];
+			if (array_key_exists($id, $this->toDrop)) {
+				continue;
+			}
 			$t = $row["t"];
 			$latest = max($latest, $t);
 			if (array_key_exists($id, $cache) && ($t <= $cache[$id])) {
