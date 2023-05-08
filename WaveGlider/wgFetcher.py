@@ -22,6 +22,7 @@ class PositionFile:
         self.__regexp = re.compile(
                 b"(\d+-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),([+-]?\d+(|[.]\d*)),([+-]?\d+(|[.]\d*))")
         self.__db = psycopg.connect(f"dbname={args.db}")
+        self.__cursor = self.__db.cursor()
         self.__createTable()
         self.__sql = f"INSERT INTO {args.table}"
         self.__sql+= "(grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
@@ -43,7 +44,9 @@ class PositionFile:
         grp.add_argument("--csvSaveTo", type=str, default="~/Sync.ARCTERX/Shore/WG")
 
     def __del__(self):
-        if self.__db: self.__db.close()
+        if self.__db: 
+            if self.__cursor: self.__db.commit()
+            self.__db.close()
 
     def __createTable(self) -> None:
         args = self.__args
@@ -62,13 +65,16 @@ class PositionFile:
     def name(self, name:str) -> None:
         self.__name = name
 
+    def commit(self) -> None:
+        self.__db.commit();
+        self.__curosr = None;
+
     def block(self, data:bytes) -> None:
         self.size += len(data)
         args = self.__args
         regexp = self.__regexp
         sql = self.__sql
-        db = self.__db
-        cur = db.cursor()
+        cur = self.__cursor
         values = [args.className, self.__name, None, None, None]
 
         for line in data.split(b"\n"):
@@ -82,7 +88,6 @@ class PositionFile:
             values[3] = float(str(matches[2], "UTF-8"))
             values[4] = float(str(matches[4], "UTF-8"))
             cur.execute(sql, values, prepare=True)
-        db.commit()
 
     def toCSV(self) -> None:
         args = self.__args
@@ -92,8 +97,7 @@ class PositionFile:
         sql+= f"SELECT DISTINCT ON (grp,id) CTID FROM {tbl} ORDER BY grp,id,t DESC"
         sql+= ") AND qCSV=FALSE"
         sql+= " RETURNING grp,id,t,lat,lon;"
-        db = self.__db
-        cur = db.cursor()
+        cur = self.__cursor
         cur.execute(sql)
         for row in cur:
             ofn = os.path.join(csvDir, row[0] + "_" +  row[1] + ".pos.csv")
@@ -104,7 +108,6 @@ class PositionFile:
                 msg = str(round(row[2].timestamp())) + f",{row[3]:.6f},{row[4]:.6f}\n"
                 ofp.write(msg)
             logging.info("Updated %s", ofn)
-        db.commit()
 
 class RetrieveFile:
     def __init__(self, fn:str) -> None:
@@ -173,6 +176,8 @@ class FTPfetch:
                         logging.info("Fetched %s bytes from %s", objPos.size - sz0, fn, offset)
             if objPos is not None:
                 objPos.toCSV() # After all the records are fetched, update the CSV files if needed
+                objPos.commit()
+                objPos = None
 
     @staticmethod
     def addArgs(parser:ArgumentParser) -> None:
