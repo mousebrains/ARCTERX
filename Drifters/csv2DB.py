@@ -104,7 +104,7 @@ if not os.path.isdir(args.csv):
     sys.exit(1)
 
 with psycopg.connect(f"dbname={args.db}") as db:
-    loadAndExecuteSQL(db, args.sql)
+    loadAndExecuteSQL(db, args.sql, "drifter")
 
 flags = pyinotify.IN_CLOSE_WRITE | pyinotify.IN_MOVED_TO
 

@@ -149,6 +149,6 @@ if not os.path.isdir(os.path.dirname(args.csv)):
 (username, codigo) = getCredentials(args.credentials) # login credentials for ucsd
 
 with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in the database
-    loadAndExecuteSQL(db, args.sql)
+    loadAndExecuteSQL(db, args.sql, "drifter")
     fetchData(db, args)
     updateCSV(db, args.csv, args.force)
