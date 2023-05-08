@@ -5,6 +5,7 @@
 # Mar-2022, Pat Welch, pat@mousebrains.com
 
 from TPWUtils import Logger
+from TPWUtils.loadAndExecuteSQL import loadAndExecuteSQL
 from Credentials import getCredentials
 import logging
 from argparse import ArgumentParser
@@ -23,7 +24,9 @@ class PositionFile:
                 b"(\d+-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),([+-]?\d+(|[.]\d*)),([+-]?\d+(|[.]\d*))")
         self.__db = psycopg.connect(f"dbname={args.db}")
         self.__cursor = self.__db.cursor()
-        self.__createTable()
+        loadAndExecuteSQL(self.__db,
+                          os.path.abspath(os.path.expanduser(args.schema)),
+                          "glider")
         self.__sql = f"INSERT INTO {args.table}"
         self.__sql+= "(grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
         self.__sql+= " ON CONFLICT DO NOTHING;"
@@ -47,20 +50,6 @@ class PositionFile:
         if self.__db: 
             if self.__cursor: self.__db.commit()
             self.__db.close()
-
-    def __createTable(self) -> None:
-        args = self.__args
-        db = self.__db
-        cur = db.cursor()
-        cur.execute("SELECT EXISTS(SELECT relname FROM pg_class WHERE relname='glider');")
-        for row in cur:
-            if row[0]: return # Already exists
-        fn = os.path.abspath(os.path.expanduser(args.schema))
-        with open(fn, "r") as fp: sql = fp.read()
-        logging.debug("SCHEMA:\n", sql)
-        cur.execute("BEGIN TRANSACTION;")
-        cur.execute(sql)
-        db.commit()
 
     def name(self, name:str) -> None:
         self.__name = name
