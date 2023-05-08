@@ -29,37 +29,46 @@ if args.service is None and args.timer is None:
 
 root = os.path.abspath(os.path.expanduser(args.serviceDirectory))
 
-for service in args.service:
-    fn = os.path.join(root, os.path.basename(service))
-    print("Writing to", fn)
-    subprocess.run((args.sudo, args.cp, service, fn), shell=False, check=True)
+if args.service:
+    for service in args.service:
+        fn = os.path.join(root, os.path.basename(service))
+        print("Writing to", fn)
+        subprocess.run((args.sudo, args.cp, service, fn), shell=False, check=True)
 
-for timer in args.timer:
-    fn = os.path.join(root, os.path.basename(timer))
-    print("Writing to", fn)
-    subprocess.run((args.sudo, args.cp, timer, fn), shell=False, check=True)
+if args.timer:
+    for timer in args.timer:
+        fn = os.path.join(root, os.path.basename(timer))
+        print("Writing to", fn)
+        subprocess.run((args.sudo, args.cp, timer, fn), shell=False, check=True)
 
 print("Forcing reload of daemon")
 subprocess.run((args.sudo, args.systemctl, "daemon-reload"), shell=False, check=True)
 
 print(f"Enabling {args.service} {args.timer}")
 cmd = [args.sudo, args.systemctl, "enable"]
-cmd.extend(args.service)
-cmd.extend(args.timer)
+if args.service: cmd.extend(args.service)
+if args.timer: cmd.extend(args.timer)
 subprocess.run(cmd, shell=False, check=True)
 
-print(f"Starting {args.timer}")
-cmd = [args.sudo, args.systemctl, "start"]
-cmd.extend(args.timer)
-subprocess.run(cmd, shell=False, check=True)
+if args.timer:
+    print(f"Starting {args.timer}")
+    cmd = [args.sudo, args.systemctl, "start"]
+    cmd.extend(args.timer)
+    subprocess.run(cmd, shell=False, check=True)
+else:
+    print(f"Starting {args.service}")
+    cmd = [args.sudo, args.systemctl, "start"]
+    cmd.extend(args.service)
+    subprocess.run(cmd, shell=False, check=True)
 
 print(f"Status {args.service} and {args.timer}")
 cmd = [args.sudo, args.systemctl, "--no-pager", "status"]
-cmd.extend(args.service)
-cmd.extend(args.timer)
+if args.service: cmd.extend(args.service)
+if args.timer: cmd.extend(args.timer)
 subprocess.run(cmd, shell=False, check=False)
 
-print(f"List timer {args.timer}")
-cmd = [args.sudo, args.systemctl, "--no-pager", "list-timers"]
-cmd.extend(args.timer)
-subprocess.run(cmd, shell=False, check=True)
+if args.timer:
+    print(f"List timer {args.timer}")
+    cmd = [args.sudo, args.systemctl, "--no-pager", "list-timers"]
+    cmd.extend(args.timer)
+    subprocess.run(cmd, shell=False, check=True)
