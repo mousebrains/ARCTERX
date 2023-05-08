@@ -20,8 +20,8 @@ Type=oneshot
 User=pat
 WorkingDirectory=/home/pat/ARCTERX/WaveGlider
 #
-ExecStart=/home/pat/ARCTERX/WaveGlider/fetcher.py \
-	--logfile=/home/pat/logs/WaveGlider.log \
+ExecStart=/home/pat/ARCTERX/WaveGlider/wgFetcher.py \
+	--logfile=/home/pat/logs/wgFetcher.log \
 	--mailTo="pat@mousebrains.com" \
 	--mailSubject="WaveGlider Fetcher" \
 	--verbose

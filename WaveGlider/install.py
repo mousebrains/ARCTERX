@@ -24,7 +24,7 @@ parser.add_argument("--sudo", type=str, default="/usr/bin/sudo",
 args = parser.parse_args()
 
 if args.service is None:
-    args.service = ["WaveGlider.service", "WGais.service"]
+    args.service = ["WaveGlider.service"]
 
 if args.timer is None:
     args.timer = ["WaveGlider.timer"]

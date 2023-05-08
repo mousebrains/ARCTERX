@@ -20,8 +20,8 @@ Description=Grab SIO WaveGlider data
 
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
-# Files are updated every 15 minutes, so run at 1, 16, 31, and 46 minutes of each hour
-OnCalendar=*-*-* *:1/15
+# Files are updated every 5 minutes, so run at 1, 16, 31, and 46 minutes of each hour
+OnCalendar=*-*-* *:0/5
 Persistent=true
 
 [Install]
