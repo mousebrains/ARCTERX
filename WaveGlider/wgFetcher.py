@@ -24,7 +24,7 @@ class PositionFile:
         self.__db = psycopg.connect(f"dbname={args.db}")
         self.__createTable()
         self.__sql = f"INSERT INTO {args.table}"
-        self.__sql+= "(grp,name,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
+        self.__sql+= "(grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
         self.__sql+= " ON CONFLICT DO NOTHING;"
         self.__name = None
         self.__csvDir = os.path.abspath(os.path.expanduser(args.csvSaveTo))
@@ -36,6 +36,7 @@ class PositionFile:
     def addArgs(parser:ArgumentParser) -> None:
         grp = parser.add_argument_group(description="Database related options")
         grp.add_argument("--db", type=str, default="arcterx", help="Database name to work with")
+        grp.add_argument("--schema", type=str, default="glider.schema", help="Glider schema")
         grp.add_argument("--table", type=str, default="glider",
                          help="Database table to save data into")
         grp.add_argument("--className", type=str, default="WG", help="Device class")
@@ -46,26 +47,16 @@ class PositionFile:
 
     def __createTable(self) -> None:
         args = self.__args
-        sql0 = f"CREATE TABLE IF NOT EXISTS {args.table} (\n"
-        sql0+= "  grp VARCHAR(20) COMPRESSION pglz,\n"
-        sql0+= "  name VARCHAR(20) COMPRESSION pglz,\n"
-        sql0+= "  t TIMESTAMP WITH TIME ZONE,\n"
-        sql0+= "  lat DOUBLE PRECISION NOT NULL,\n"
-        sql0+= "  lon DOUBLE PRECISION NOT NULL,\n"
-        sql0+= "  qCSV BOOLEAN DEFAULT FALSE,\n"
-        sql0+= "  PRIMARY KEY (grp, name, t)\n"
-        sql0+= ");"
-
-        sql1 = f"CREATE INDEX IF NOT EXISTS {args.table}_t ON {args.table} (t);"
-        sql2 = f"CREATE INDEX IF NOT EXISTS {args.table}_name_t ON {args.table} (name,t);"
-        sql2 = f"CREATE INDEX IF NOT EXISTS {args.table}_qCSV ON {args.table} (qCSV);"
-
         db = self.__db
         cur = db.cursor()
+        cur.execute("SELECT EXISTS(SELECT relname FROM pg_class WHERE relname='glider');")
+        for row in cur:
+            if row[0]: return # Already exists
+        fn = os.path.abspath(os.path.expanduser(args.schema))
+        with open(fn, "r") as fp: sql = fp.read()
+        logging.debug("SCHEMA:\n", sql)
         cur.execute("BEGIN TRANSACTION;")
-        cur.execute(sql0)
-        cur.execute(sql1)
-        cur.execute(sql2)
+        cur.execute(sql)
         db.commit()
 
     def name(self, name:str) -> None:
@@ -98,9 +89,9 @@ class PositionFile:
         csvDir = self.__csvDir
         tbl = args.table
         sql = f"UPDATE {tbl} SET qCSV=TRUE WHERE CTID IN ("
-        sql+= f"SELECT DISTINCT ON (grp,name) CTID FROM {tbl} ORDER BY grp,name,t DESC"
+        sql+= f"SELECT DISTINCT ON (grp,id) CTID FROM {tbl} ORDER BY grp,id,t DESC"
         sql+= ") AND qCSV=FALSE"
-        sql+= " RETURNING grp,name,t,lat,lon;"
+        sql+= " RETURNING grp,id,t,lat,lon;"
         db = self.__db
         cur = db.cursor()
         cur.execute(sql)

@@ -1,0 +1,27 @@
+-- Create database schema for Gliders
+
+CREATE TABLE IF NOT EXISTS glider ( -- Glider information
+  grp VARCHAR(20) COMPRESSION lz4,
+  id VARCHAR(20) COMPRESSION lz4,
+  t TIMESTAMP WITH TIME ZONE,
+  lat DOUBLE PRECISION NOT NULL,
+  lon DOUBLE PRECISION NOT NULL,
+  qCSV BOOLEAN DEFAULT FALSE,
+  PRIMARY KEY(t,grp,id)
+);
+
+-- Function sends a notification whenever glider is updated
+CREATE OR REPLACE FUNCTION glider_updated_func()
+  RETURNS  TRIGGER AS $psql$
+BEGIN
+  PERFORM pg_notify('glider_updated', 'glider');
+  RETURN NEW;
+end;
+$psql$
+LANGUAGE plpgsql;
+
+-- When glider is updated or inserted into, call the nofiication function
+CREATE OR REPLACE TRIGGER glider_updated AFTER INSERT OR UPDATE
+  ON glider
+  FOR EACH STATEMENT
+    EXECUTE PROCEDURE glider_updated_func();
