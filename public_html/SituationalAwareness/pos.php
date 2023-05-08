@@ -20,20 +20,24 @@ class DB {
 
 		$this->tables["ship"] =
 			$db->prepare(
-				"SELECT id,t,lat,lon"
-				. " FROM ship  WHERE (id,t) IN ("
-				. " SELECT id,max(t) AS t FROM ship WHERE t>=? GROUP BY id);"
+				"SELECT DISTINCT ON (id) 'ship' AS grp,id,t,lat,lon"
+				. " FROM ship WHERE t>=? ORDER BY id,t DESC;"
 			);
 
 		$this->tables["drifter"] =
 			$db->prepare(
-				"SELECT id,t,lat,lon"
-			        . " FROM drifter WHERE (id,t) IN (" 
-				. " SELECT id,max(t) AS t FROM drifter WHERE"
-				. " t>=? AND "
-				. "(lat IS NOT NULL) AND (lon IS NOT NULL)"
-				. " GROUP BY id);"
-		);
+				"SELECT DISTINCT ON (id) 'drifter' AS grp,id,t,lat,lon"
+				. " FROM drifter"
+				. " WHERE t>=? AND lat IS NOT NULL AND lon IS NOT NULL"
+				. " ORDER BY id,t DESC;"
+			);
+		$this->tables["glider"] =
+			$db->prepare(
+				"SELECT DISTINCT ON (grp,name) grp,name as id,t,lat,lon"
+				. " FROM glider"
+				. " WHERE t>=?"
+				. " ORDER BY grp,name,t DESC;"
+			);
 
 		$this->latest = array();
 		$this->cache = array();
@@ -55,6 +59,7 @@ class DB {
         }
 
 	function fetchData($tbl) {
+		echo "tbl $tbl\n";
 		$stmt = $this->tables[$tbl];
 		$latest = $this->latest[$tbl];
 		if ($stmt->execute([$latest]) == false) {
@@ -64,7 +69,8 @@ class DB {
 		$cache = $this->cache[$tbl];
 		$a = array();
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$id = $row["id"];
+			$grp = $row["grp"];
+			$id = $grp . "," . $row["id"];
 			$t = $row["t"];
 			$latest = max($latest, $t);
 			if (array_key_exists($id, $cache) && ($t <= $cache[$id])) {
@@ -72,9 +78,13 @@ class DB {
 			}
 			$cache[$id] = $t;
 			$row["t"] = (new DateTimeImmutable($t))->getTimestamp();
-			$row["lat"] = (float) $row["lat"];
-			$row["lon"] = (float) $row["lon"];
-			array_push($a, $row);
+			$row["lat"] = round((float) $row["lat"], 6);
+			$row["lon"] = round((float) $row["lon"], 6);
+			if (!array_key_exists($grp, $a)) {
+				$a[$grp] = array();
+			}
+			unset($row["grp"]);
+			array_push($a[$grp], $row);
 		}
 		$this->latest[$tbl] = $latest;
 		$this->cache[$tbl] = $cache;
@@ -88,7 +98,7 @@ class DB {
 		foreach (array_keys($this->tables) AS $tbl) {
 			$b = $this->fetchData($tbl);
 			if (!empty($b)) {
-				$a[$tbl] = $b;
+				$a = array_merge($a, $b);
 			}
 		}
 
