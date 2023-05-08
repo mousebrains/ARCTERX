@@ -17,6 +17,7 @@ if (is_dir("AVISO")) {
 <li><a href='Sync.ARCTERX/Ship'>Ship</a></li>
 <li><a href='Sync.ARCTERX/Shore'>Shore</a></li>
 <li><a href='typhoons.html'>Typhoons</a></li>
+<li><a href='https://vertmix.alaska.edu/atx2023.html'>APL-UW Epsilon PALAU 800 model</a></li>
 </ul>
 </body>
 </html>
