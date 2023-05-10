@@ -95,8 +95,8 @@ mkPopupText = function(popup) {
 	txt += "<br>" + t.toUTCString();
 	if ("tPrev" in item) {
 		var dt = (item["t"] - item["tPrev"]) / 3600;
-		var dist = item["posPrev"].distanceTo(item["pos"]) / 1852;
-		var bearing = item["posPrev"].bearingTo(item["pos"]);
+		var dist = item["pos"].distanceTo(item["posPrev"]) / 1852;
+		var bearing = item["pos"].bearingTo(item["posPrev"]);
 		txt += "<br>Spd" + (dist / dt).toFixed(2) + " kts Hdg "
 			+ bearing.toFixed(0) + " deg true";
 	}
