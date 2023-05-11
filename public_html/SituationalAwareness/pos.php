@@ -66,7 +66,6 @@ class DB {
         }
 
 	function fetchData($tbl) {
-		echo "tbl $tbl\n";
 		$stmt = $this->tables[$tbl];
 		$latest = $this->latest[$tbl];
 		if ($stmt->execute([$latest]) == false) {
