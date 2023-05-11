@@ -33,7 +33,7 @@ class Reader(Thread):
 
         with psycopg.connect(dbOpt) as db: 
             for name in args.csv:
-                for fn in glob.glob(os.path.join(args.csv, "WG_*.pos.csv")):
+                for fn in glob.glob(name):
                     matches = exp.fullmatch(os.path.basename(fn))
                     if matches:
                         self.__loadFile(db, fn, matches[1], matches[2])
@@ -118,7 +118,7 @@ if args.csv is None:
 
 for i in range(len(args.csv)):
     args.csv[i] = os.path.abspath(os.path.expanduser(args.csv[i]))
-    if not os.path.isdir(args.csv[i]):
+    if not os.path.isdir(os.path.dirname(args.csv[i])):
         logging.error("%s is not a directory", args.csv[i])
         sys.exit(1)
 
