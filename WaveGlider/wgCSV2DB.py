@@ -27,15 +27,16 @@ class Reader(Thread):
     def runIt(self) -> None:
         dbOpt = f"dbname={self.args.db}"
         dt = self.args.delay
-        exp = re.compile(r"(WG)_(\w+)[.]pos[.]csv")
+        exp = re.compile(r"(WG|MWB)_(\w+)[.]pos[.]csv")
         logging.info("exp %s", exp)
         q = self.__queue
 
         with psycopg.connect(dbOpt) as db: 
-            for fn in glob.glob(os.path.join(args.csv, "WG_*.pos.csv")):
-                matches = exp.fullmatch(os.path.basename(fn))
-                if matches:
-                    self.__loadFile(db, fn, matches)
+            for name in args.csv:
+                for fn in glob.glob(os.path.join(args.csv, "WG_*.pos.csv")):
+                    matches = exp.fullmatch(os.path.basename(fn))
+                    if matches:
+                        self.__loadFile(db, fn, matches[1], matches[2])
 
         while True:
             (t0, fn) = q.get()
@@ -45,10 +46,10 @@ class Reader(Thread):
             time.sleep(dt)
             logging.info("Woke up")
             with psycopg.connect(dbOpt) as db: 
-                self.__loadFile(db, fn, matches)
+                self.__loadFile(db, fn, matches[1], matches[2])
 
     @staticmethod
-    def __loadFile(db, fn:str, matches) -> bool:
+    def __loadFile(db, fn:str, grp:str, ident:str) -> bool:
         sql0 = "INSERT INTO glider (grp,id,t,lat,lon)"
         sql0+= " VALUES(%s,%s,%s,%s,%s)"
         sql0+= " ON CONFLICT DO NOTHING;"
@@ -66,7 +67,7 @@ class Reader(Thread):
         cur.execute("BEGIN TRANSACTION;")
         cnt = 0;
 
-        items = [matches[1], matches[2], None, None, None]
+        items = [grp, ident, None, None, None]
 
         with open(fn, "r") as fp:
             if pos:
@@ -100,8 +101,8 @@ parser = ArgumentParser()
 Logger.addArgs(parser)
 parser.add_argument("--sql", type=str, default="glider.schema",
                     help="Filename with table definitions")
-parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/WG",
-                    help="Input directory to monitor for changes")
+parser.add_argument("--csv", type=str, action = "append",
+                    help="Input directories to monitor for changes")
 parser.add_argument("--db", type=str, default="arcterx", help="Which Postgresql DB to use")
 parser.add_argument("--delay", type=float, default=10,
         help="Number of seconds after an update until loading the changes")
@@ -109,11 +110,17 @@ args = parser.parse_args()
 
 Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
 
-args.csv = os.path.abspath(os.path.expanduser(args.csv))
+if args.csv is None:
+    args.csv = [
+            "~/Sync.ARCTERX/Shore/WG/WG_*.pos.csv",
+            "~/Sync.ARCTERX/Shore/MWB/MWB_*.pos.csv",
+            ]
 
-if not os.path.isdir(args.csv):
-    logging.error("%s is not a directory", args.csv)
-    sys.exit(1)
+for i in range(len(args.csv)):
+    args.csv[i] = os.path.abspath(os.path.expanduser(args.csv[i]))
+    if not os.path.isdir(args.csv[i]):
+        logging.error("%s is not a directory", args.csv[i])
+        sys.exit(1)
 
 with psycopg.connect(f"dbname={args.db}") as db:
     loadAndExecuteSQL(db, args.sql)
@@ -126,7 +133,8 @@ rdr = Reader(args, inotify.queue)
 inotify.start()
 rdr.start()
 
-inotify.addTree(args.csv)
+for name in args.csv:
+    inotify.addTree(name)
 
 try:
     Thread.waitForException()
