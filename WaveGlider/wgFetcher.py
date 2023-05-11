@@ -10,9 +10,12 @@ from Credentials import getCredentials
 import logging
 from argparse import ArgumentParser
 from ftplib import FTP
+import xarray as xr
+import pandas as pd
 import datetime
 import psycopg
 import json
+from tempfile import TemporaryFile
 import os
 import re
 
@@ -31,7 +34,7 @@ class PositionFile:
         self.__sql+= "(grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
         self.__sql+= " ON CONFLICT DO NOTHING;"
         self.__name = None
-        self.__csvDir = os.path.abspath(os.path.expanduser(args.csvSaveTo))
+        self.__csvDir = os.path.abspath(os.path.expanduser(args.posSaveTo))
         if not os.path.isdir(self.__csvDir):
             logging.info("Creating %s", self.__csvDir)
             os.makedirs(self.__csvDir, mode=0o755, exist_ok=True)
@@ -44,12 +47,14 @@ class PositionFile:
         grp.add_argument("--table", type=str, default="glider",
                          help="Database table to save data into")
         grp.add_argument("--className", type=str, default="WG", help="Device class")
-        grp.add_argument("--csvSaveTo", type=str, default="~/Sync.ARCTERX/Shore/WG")
+        grp.add_argument("--posSaveTo", type=str, default="~/Sync.ARCTERX/Shore/WG")
 
     def __del__(self):
         if self.__db: 
-            if self.__cursor: self.__db.commit()
+            if self.__cursor:
+                self.__db.commit()
             self.__db.close()
+            self.__db = None
 
     def name(self, name:str) -> None:
         self.__name = name
@@ -114,7 +119,8 @@ class MWBfile:
         self.__sql+= "(grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
         self.__sql+= " ON CONFLICT DO NOTHING;"
         self.__name = None
-        self.__csvDir = os.path.abspath(os.path.expanduser(args.csvSaveTo))
+        self.__tfp = None
+        self.__csvDir = os.path.abspath(os.path.expanduser(args.mwbSaveTo))
         if not os.path.isdir(self.__csvDir):
             logging.info("Creating %s", self.__csvDir)
             os.makedirs(self.__csvDir, mode=0o755, exist_ok=True)
@@ -124,36 +130,48 @@ class MWBfile:
         grp.add_argument("--mwbSaveTo", type=str, default="~/Sync.ARCTERX/Shore/MWB")
 
     def __del__(self):
+        self.__tfp = None
         if self.__db: 
-            if self.__cursor: self.__db.commit()
+            if self.__cursor: 
+                self.__db.commit()
             self.__db.close()
+            self.__db = None
 
     def name(self, name:str) -> None:
         self.__name = name
+        self.__tfp = TemporaryFile()
+        logging.info("MWB %s", name)
 
     def commit(self) -> None:
         self.__db.commit();
         self.__curosr = None;
 
+    def done(self) -> None:
+        args = self.__args
+        matches = re.fullmatch(r"mwb(\d+)d\d+[.]nc", self.__name)
+        if not matches:
+            logging.info("Rejecting %s", self.__name)
+            self.__tfp = None
+            return
+        ident = matches[1]
+        self.__tfp.seek(0) # Rewind the file
+
+        sql = f"INSERT INTO {args.table} (grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
+        sql+= " ON CONFLICT DO NOTHING;"
+
+        with xr.open_dataset(self.__tfp) as ds:
+            df = pd.DataFrame()
+            df["grp"] = ["MWB"] * ds.time.size
+            df["id"] = [ident] * ds.time.size
+            df["t"] = ds.time.data
+            df["lat"] = ds.lat.data
+            df["lon"] = ds.lon.data
+            self.__cursor.executemany(sql, df.values.tolist())
+        self.__tfp = None # Close the file
+
     def block(self, data:bytes) -> None:
         self.size += len(data)
-        args = self.__args
-        regexp = self.__regexp
-        sql = self.__sql
-        cur = self.__cursor
-        values = [args.className, self.__name, None, None, None]
-
-        for line in data.split(b"\n"):
-            matches = regexp.fullmatch(line)
-            if not matches:
-                # logging.debug("Unmatched line: %s", line)
-                continue
-            values[2] = datetime.datetime.strptime(
-                    str(matches[1], "UTF-8"),
-                    "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc)
-            values[3] = float(str(matches[2], "UTF-8"))
-            values[4] = float(str(matches[4], "UTF-8"))
-            cur.execute(sql, values, prepare=True)
+        self.__tfp.write(data)
 
     def toCSV(self) -> None:
         args = self.__args
@@ -249,10 +267,6 @@ class FTPfetch:
                         sz0 = 0
                         offset = None
                     elif "mwb" in fn:
-                        logging.info("MWB %s", fn);
-                        continue
-                        ofn = os.path.join("data", "MWB", fn)
-                        # if os.path.isfile(ofn): continue
                         if not objMWB:
                             objMWB = MWBfile(args)
                         obj = objMWB
@@ -263,11 +277,12 @@ class FTPfetch:
                         logging.info("Unsupported file %s", fn)
                         continue
                     ftp.retrbinary(f"RETR {fn}", obj.block, blocksize=65536, rest=offset)
-                    obj.done()
                     if offset is None:
                         logging.info("Fetched %s bytes from %s", obj.size - sz0, fn)
                     else:
-                        logging.info("Fetched %s bytes from %s offset %s", obj.size - sz0, fn, offset)
+                        logging.info("Fetched %s bytes from %s offset %s",
+                                     obj.size - sz0, fn, offset)
+                    obj.done()
 
             if objPos is not None:
                 objPos.toCSV() # After all the records are fetched, update the CSV files if needed
