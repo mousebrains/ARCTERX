@@ -119,15 +119,20 @@ class MWBfile:
         self.__sql+= "(grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
         self.__sql+= " ON CONFLICT DO NOTHING;"
         self.__name = None
+        self.__ident = None
         self.__tfp = None
+        self.__rawDir = os.path.abspath(os.path.expanduser(args.mwbRawTo))
         self.__csvDir = os.path.abspath(os.path.expanduser(args.mwbSaveTo))
-        if not os.path.isdir(self.__csvDir):
-            logging.info("Creating %s", self.__csvDir)
-            os.makedirs(self.__csvDir, mode=0o755, exist_ok=True)
+
+        for dirname in [self.__csvDir, self.__rawDir]:
+            if not os.path.isdir(dirname):
+                logging.info("Creating %s", dirname)
+                os.makedirs(dirname, mode=0o755, exist_ok=True)
 
     def addArgs(parser:ArgumentParser) -> None:
         grp = parser.add_argument_group(description="MWB related options")
         grp.add_argument("--mwbSaveTo", type=str, default="~/Sync.ARCTERX/Shore/MWB")
+        grp.add_argument("--mwbRawTo", type=str, default="~/Data/MWB")
 
     def __del__(self):
         self.__tfp = None
@@ -138,8 +143,16 @@ class MWBfile:
             self.__db = None
 
     def name(self, name:str) -> None:
+        matches = re.fullmatch(r"mwb(\d+)d\d+[.]nc", name)
+        if not matches:
+            logging.info("Rejecting %s", name)
+            self.__tfp = None
+            return
+
         self.__name = name
-        self.__tfp = TemporaryFile()
+        self.__ident = matches[1]
+        self.__ofn = os.path.join(self.__rawDir, name)
+        self.__tfp = open(self.__ofn, "wb");
         logging.info("MWB %s", name)
 
     def commit(self) -> None:
@@ -147,31 +160,26 @@ class MWBfile:
         self.__curosr = None;
 
     def done(self) -> None:
+        if not self.__tfp: return
         args = self.__args
-        matches = re.fullmatch(r"mwb(\d+)d\d+[.]nc", self.__name)
-        if not matches:
-            logging.info("Rejecting %s", self.__name)
-            self.__tfp = None
-            return
-        ident = matches[1]
-        self.__tfp.seek(0) # Rewind the file
+        self.__tfp.close()
+        self.__tfp = None # Close the file
 
         sql = f"INSERT INTO {args.table} (grp,id,t,lat,lon) VALUES(%s,%s,%s,%s,%s)"
         sql+= " ON CONFLICT DO NOTHING;"
 
-        with xr.open_dataset(self.__tfp) as ds:
+        with xr.open_dataset(self.__ofn) as ds:
             df = pd.DataFrame()
             df["grp"] = ["MWB"] * ds.time.size
-            df["id"] = [ident] * ds.time.size
+            df["id"] = [self.__ident] * ds.time.size
             df["t"] = ds.time.data
             df["lat"] = ds.lat.data
             df["lon"] = ds.lon.data
             self.__cursor.executemany(sql, df.values.tolist())
-        self.__tfp = None # Close the file
 
     def block(self, data:bytes) -> None:
         self.size += len(data)
-        self.__tfp.write(data)
+        if self.__tfp: self.__tfp.write(data)
 
     def toCSV(self) -> None:
         args = self.__args
