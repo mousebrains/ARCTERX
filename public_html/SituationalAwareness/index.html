@@ -157,7 +157,7 @@ map.on("popupclose", function(e) {
 });
 
 
-const posSource = new EventSource("tpw.php");
+const posSource = new EventSource("pos.php");
 posSource.onmessage = (event) => {
 	var data = JSON.parse(event.data);
 	var qShip = false;
