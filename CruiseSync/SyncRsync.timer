@@ -21,7 +21,7 @@ Description=Sync toShore directory
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
 # Push data once an hour
-OnCalendar=*-*-* 1:47
+OnCalendar=*-*-* *:47
 Persistent=true
 
 [Install]
