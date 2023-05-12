@@ -36,6 +36,21 @@ var eezMap = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver
 		transparent: true,
 	});
 
+var IsoPalau = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+	{
+		layers: "ARCTERX:Palau",
+		format: "image/svg",
+		transparent: true,
+	});
+
+var IsoBasin = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+	{
+		layers: "ARCTERX:isobath",
+		format: "image/svg",
+		transparent: true,
+	});
+
+
 var tailLayer = L.polyline([], {color: "lightgreen"});
 var tailRing = {};
 
@@ -47,6 +62,8 @@ var baseMaps = {
 
 var overlayMaps = {
 	"EEZ": eezMap,
+	"Basin": IsoBasin,
+	"Palau": IsoPalau,
 	"colas": tailLayer,
 };
 
