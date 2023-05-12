@@ -1,0 +1,20 @@
+#! /bin/bash
+#
+# Sync files from cruise share to Sync.ARCTERX for MET/TSG/NAV data
+# Copy ship.nc for Thompson to Sync.ARCTERX/Ship for sending to shore
+#
+# April-2022, Pat Welch, pat@mousebrains.com
+
+log=/home/pat/logs/syncRsync.log
+
+echo >>$log
+date >>$log
+echo >>$log
+rsync \
+	--temp-dir=/home/pat/cache \
+	--archive \
+       	--verbose \
+	--max-size=10M \
+	/mnt/share/TN417/toShore \
+	/home/pat/Sync.ARCTERX/Ship \
+	2>&1 >>$log

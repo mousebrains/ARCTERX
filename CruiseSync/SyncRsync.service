@@ -1,0 +1,27 @@
+#
+# rsync toShore directory
+#
+# N.B. This has two components, SyncRsync.service and SyncRsync.timer
+#
+# sudo cp SyncRsync.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SyncRsync.timer SyncRsync.service
+# sudo systemctl start SyncRsync.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Sync toShore directory
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/CruiseSync
+#
+ExecStart=/home/pat/ARCTERX/CruiseSync/syncRsync
+        
+[Install]
+WantedBy=multi-user.target
+
