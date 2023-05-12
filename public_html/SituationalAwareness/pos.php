@@ -102,7 +102,7 @@ class DB {
 			$ident = $grp . "," . $id;
 			if (array_key_exists($ident, $this->toDrop)) continue;
 			$t = $row["t"];
-			if (array_key_exists($ident, $cache) && ($cache[$ident] <= $t)) continue;
+			if (array_key_exists($ident, $cache) && ($t <= $cache[$ident])) continue;
 			if (!array_key_exists($ident, $cache)) $cache[$ident] = 0;
 			if ($t > $cache[$ident]) { // Latest record for this ident
 				$cache[$ident] = $t;
@@ -187,9 +187,7 @@ while (True) { # Wait forever
 		} else {
 			$tbl = $notifications["payload"];
 			$data = $db->fetchData($tbl);
-			if (!empty($data)) {
-				echo "data: " . json_encode($data) . "\n\n";
-			}
+			echo "data: " . json_encode($data) . "\n\n";
 		} // if notifications
 	} catch (Exception $e) {
 		echo "data: " . json_encode(["errors" => $e->getMessage()]) . "\n\n";
