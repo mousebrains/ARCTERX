@@ -134,7 +134,7 @@ inotify.start()
 rdr.start()
 
 for name in args.csv:
-    inotify.addTree(name)
+    inotify.addTree(os.path.dirname(name))
 
 try:
     Thread.waitForException()
