@@ -29,7 +29,7 @@ class DB {
 		$this->initial["ship"] =
 			$db->prepare(
 				"SELECT 'ship' AS grp,id,t,lat,lon"
-				. " FROM ship WHERE t>=? ORDER BY id,t DESC LIMIT ?;"
+				. " FROM ship WHERE t>=? ORDER BY t DESC LIMIT ?;"
 			);
 		$this->tables["ship"] =
 			$db->prepare(
@@ -42,7 +42,7 @@ class DB {
 				"SELECT 'drifter' AS grp,id,t,lat,lon"
 				. " FROM drifter"
 				. " WHERE t>=? AND lat IS NOT NULL AND lon IS NOT NULL"
-				. " ORDER BY id,t DESC LIMIT ?;"
+				. " ORDER BY t DESC LIMIT ?;"
 			);
 		$this->tables["drifter"] =
 			$db->prepare(
@@ -57,7 +57,7 @@ class DB {
 				"SELECT grp,id,t,lat,lon"
 				. " FROM glider"
 				. " WHERE t>=?"
-				. " ORDER BY grp,id,t DESC LIMIT ?;"
+				. " ORDER BY t DESC LIMIT ?;"
 			);
 		$this->tables["glider"] =
 			$db->prepare(
@@ -86,13 +86,13 @@ class DB {
                 return ['channel' => $a['message'], 'payload' => $a['payload']];
         }
 
-	function fetchRows($tbl, $stmt, $params) {
+	function fetchRows($tbl, $stmt, $params, $qLatest) {
 		if ($stmt->execute($params) == false) {
 			array_push($this->errors, $stmt->errorInfo());
 			return array();
 		}
 
-		$latest = array_key_exists($tbl, $this->latest) ? $this->latest[$tbl] : 
+		$latest = array_key_exists($tbl, $this->latest) ? $this->latest[$tbl] :
 			"2000-01-01 00:00:00+00";
 		$cache = $this->cache[$tbl];
 		$a = array();
@@ -102,7 +102,10 @@ class DB {
 			$ident = $grp . "," . $id;
 			if (array_key_exists($ident, $this->toDrop)) continue;
 			$t = $row["t"];
-			if (array_key_exists($ident, $cache) && ($t <= $cache[$ident])) continue;
+			if ($qLatest
+				&& array_key_exists($ident, $cache)
+				&& ($t <= $cache[$ident]))
+				continue;
 			if (!array_key_exists($ident, $cache)) $cache[$ident] = 0;
 			if ($t > $cache[$ident]) { // Latest record for this ident
 				$cache[$ident] = $t;
@@ -125,7 +128,7 @@ class DB {
 	}
 
 	function fetchData($tbl) {
-		$b = $this->fetchRows($tbl, $this->tables[$tbl], [$this->latest[$tbl]]);
+		$b = $this->fetchRows($tbl, $this->tables[$tbl], [$this->latest[$tbl]], true);
 		if (!empty($this->errors)) {
                         $b["errors"] = $this->errors;
                         $this->errors = array();
@@ -140,7 +143,7 @@ class DB {
 		$t0 = date("Y-m-d H:i:s+00", strtotime("-$hoursBack hours"));
 		foreach (array_keys($this->initial) AS $tbl) {
 			$this->latest[$tbl] = $t0;
-			$a = $this->fetchRows($tbl, $this->initial[$tbl], [$t0, $maxRows]);
+			$a = $this->fetchRows($tbl, $this->initial[$tbl], [$t0, $maxRows], false);
 			if (!empty($a)) {
 				$b = array_merge($b, $a);
 			}
