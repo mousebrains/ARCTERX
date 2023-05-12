@@ -19,6 +19,7 @@ if (is_dir("AVISO")) {
 <li><a href='typhoons.html'>Typhoons</a></li>
 <li><a href='https://www.pacioos.hawaii.edu/voyager'>PacIOOS model</a></li>
 <li><a href='https://vertmix.alaska.edu/atx2023.html'>APL-UW Epsilon PALAU 800 model</a></li>
+<li><a href='https://www7320.nrlssc.navy.mil/NLIWI_WWW/EAS-SKII/EASNFS.html'>NRL model</a></li>
 </ul>
 </body>
 </html>
