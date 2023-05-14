@@ -26,7 +26,15 @@ class RSync(Thread):
 
         tNext = time.time() + dt
 
-        cmd = (args.rsync, "--compress", "--archive", src, tgt)
+        cmd = [args.rsync,
+               f"--bwlimit={args.bwlimit}",
+               f"--temp-dir={args.tempDir}",
+               "--compress",
+               "--archive",
+               ]
+        if args.verbose: cmd.append("--verbose")
+        cmd.append(src)
+        cmd.append(tgt)
         logging.info("Starting %s", cmd)
         while True:
             a = subprocess.run(cmd, 
@@ -56,6 +64,8 @@ parser = ArgumentParser()
 Logger.addArgs(parser)
 grp = parser.add_argument_group(description="RSync related options")
 grp.add_argument("--rsync", type=str, default="/usr/bin/rsync", help="rsync command")
+grp.add_argument("--bwlimit", type=int, default=200, help="KiB/sec")
+grp.add_argument("--tempDir", type=str, default="/home/pat/cache", help="Rsync temp dir")
 grp = parser.add_argument_group(description="Pushing to shore")
 grp.add_argument("--dtPush", type=float, default=300, help="Delay between push attempts")
 grp.add_argument("--srcPush", type=str, default="/home/pat/Sync.ARCTERX/Ship",
