@@ -109,7 +109,6 @@ mkDegMin = function(val) {
 
 pruneTail = function(tail) {
 	if (tail.length > 100) { // Trim to at most 100 elements
-		console.log("Pruning length");
 		tail = tail.slice(-100);
 	}
 	var t0 = Date.now() / 1000 - 6 * 3600; // Only back six hours worth of data
@@ -243,8 +242,9 @@ posSource.onmessage = (event) => {
 		var cnt = 0;
 		for (var shp in ships) {
 			cnt += 1;
-			lat0 += ships[shp].pos.lat;
-			lon0 += ships[shp].pos.lng;
+			pos0 = ships[shp].tail.slice(-1)[0][1];
+			lat0 = pos0.lat;
+			lon0 = pos0.lng;
 		}
                 if (cnt) {
 			map.panTo(new L.latLng(lat0 / cnt, lon0 / cnt));
