@@ -1,0 +1,32 @@
+#
+# rsyncIt service file
+#  Set up a service which syncs shore to ship and back
+#
+# May-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=rsyncIt
+
+# Wait for the network to be online
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# type=simple
+User=pat
+Group=pat
+
+WorkingDirectory=/home/pat/logs
+
+ExecStart=/home/pat/ARCTERX/syncthing/rsyncit.py \
+	--verbose \
+	--logfile=/home/pat/logs/rsyncIt.log \
+
+Restart=always
+RestartSec=300
+
+# Harden
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
