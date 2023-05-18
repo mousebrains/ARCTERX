@@ -124,10 +124,9 @@ class MWBfile:
         self.__name = None
         self.__ident = None
         self.__tfp = None
-        self.__rawDir = os.path.abspath(os.path.expanduser(args.mwbRawTo))
         self.__csvDir = os.path.abspath(os.path.expanduser(args.mwbSaveTo))
 
-        for dirname in [self.__csvDir, self.__rawDir]:
+        for dirname in [self.__csvDir]:
             if not os.path.isdir(dirname):
                 logging.info("Creating %s", dirname)
                 os.makedirs(dirname, mode=0o755, exist_ok=True)
@@ -135,7 +134,6 @@ class MWBfile:
     def addArgs(parser:ArgumentParser) -> None:
         grp = parser.add_argument_group(description="MWB related options")
         grp.add_argument("--mwbSaveTo", type=str, default="~/Sync.ARCTERX/Shore/MWB")
-        grp.add_argument("--mwbRawTo", type=str, default="~/Data/MWB")
 
     def __del__(self):
         self.__tfp = None
@@ -146,7 +144,6 @@ class MWBfile:
             self.__db = None
 
     def name(self, name:str) -> None:
-        logging.info("MWB name %s", name)
         matches = re.fullmatch(r"mwb(\d+)d\d+[.]nc", name)
         if not matches:
             logging.info("Rejecting %s", name)
@@ -155,9 +152,8 @@ class MWBfile:
 
         self.__name = name
         self.__ident = matches[1]
-        self.__ofn = os.path.join(self.__rawDir, name)
+        self.__ofn = os.path.join(self.__csvDir, name)
         self.__tfp = open(self.__ofn, "wb");
-        logging.info("MWB %s", name)
 
     def commit(self) -> None:
         self.__db.commit();
@@ -272,6 +268,12 @@ class FTPfetch:
                         obj = CopyFile(ofn)
                         sz0 = 0
                         offset = None
+                    elif "_met_2023" in fn:
+                        ofn = os.path.join(args.output, "CSSMET", fn)
+                        if os.path.isfile(ofn): continue
+                        obj = CopyFile(ofn)
+                        sz0 = 0
+                        offset = None
                     elif re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}[.]png", fn):
                         ofn = os.path.join(args.output, "XBand", fn)
                         if os.path.isfile(ofn): continue
@@ -284,7 +286,7 @@ class FTPfetch:
                             obj = CopyFile(ofn)
                             sz0 = 0
                             offset = None
-                        elif "mwb" in fn:
+                        elif ".nc" in fn:
                             if not objMWB:
                                 objMWB = MWBfile(args)
                             obj = objMWB
@@ -358,6 +360,7 @@ if __name__ == "__main__":
                 "/CORDC/outgoing/arcterx/xband/2.*[.]png",
                 "/CORDC/outgoing/arcterx/wg/.*",
                 "/CORDC/outgoing/arcterx/wave/.*",
+                "/CORDC/outgoing/arcterx/cssmet/.*",
                 )
 
         # "/CORDC/outgoing/internal/arcterx/wavebuoy/mwb.*[.]nc",
