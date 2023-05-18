@@ -79,12 +79,15 @@ class PositionFile:
             if not matches:
                 # logging.debug("Unmatched line: %s", line)
                 continue
-            values[2] = datetime.datetime.strptime(
-                    str(matches[1], "UTF-8"),
-                    "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc)
-            values[3] = float(str(matches[2], "UTF-8"))
-            values[4] = float(str(matches[4], "UTF-8"))
-            cur.execute(sql, values, prepare=True)
+            try:
+                values[2] = datetime.datetime.strptime(
+                        str(matches[1], "UTF-8"),
+                        "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc)
+                values[3] = float(str(matches[2], "UTF-8"))
+                values[4] = float(str(matches[4], "UTF-8"))
+                cur.execute(sql, values, prepare=True)
+            except:
+                logging.warning("Unable to parse %s", line)
 
     def toCSV(self) -> None:
         args = self.__args
@@ -143,6 +146,7 @@ class MWBfile:
             self.__db = None
 
     def name(self, name:str) -> None:
+        logging.info("MWB name %s", name)
         matches = re.fullmatch(r"mwb(\d+)d\d+[.]nc", name)
         if not matches:
             logging.info("Rejecting %s", name)
@@ -275,11 +279,26 @@ class FTPfetch:
                         sz0 = 0
                         offset = None
                     elif "mwb" in fn:
-                        if not objMWB:
-                            objMWB = MWBfile(args)
-                        obj = objMWB
-                        obj.name(fn)
-                        sz0 = obj.size
+                        if "amsl.csv" in fn:
+                            ofn = os.path.join(args.output, "MWB", fn)
+                            obj = CopyFile(ofn)
+                            sz0 = 0
+                            offset = None
+                        elif "mwb" in fn:
+                            if not objMWB:
+                                objMWB = MWBfile(args)
+                            obj = objMWB
+                            obj.name(fn)
+                            sz0 = obj.size
+                            offset = None
+                        else:
+                            logging.info("Unsupported file %s", fn)
+                            continue
+                    elif "metbuoy" in fn:
+                        ofn = os.path.join(args.output, "WG", fn)
+                        if os.path.isfile(ofn): continue
+                        obj = CopyFile(ofn)
+                        sz0 = 0
                         offset = None
                     else:
                         logging.info("Unsupported file %s", fn)
@@ -337,7 +356,9 @@ if __name__ == "__main__":
                 "/CORDC/outgoing/arcterx/wg_SV3-.*_positions_last_24h[.]txt",
                 "/CORDC/outgoing/arcterx/hfr/NetCDF/2.*[.]nc",
                 "/CORDC/outgoing/arcterx/xband/2.*[.]png",
-                "/CORDC/outgoing/internal/arcterx/wavebuoy/mwb.*[.]nc",
+                "/CORDC/outgoing/arcterx/wg/.*",
+                "/CORDC/outgoing/arcterx/wave/.*",
                 )
 
+        # "/CORDC/outgoing/internal/arcterx/wavebuoy/mwb.*[.]nc",
     FTPfetch(args)
