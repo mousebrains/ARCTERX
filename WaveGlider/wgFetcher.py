@@ -298,7 +298,7 @@ class FTPfetch:
                             continue
                     elif "metbuoy" in fn:
                         ofn = os.path.join(args.output, "WG", fn)
-                        if os.path.isfile(ofn): continue
+                        # if os.path.isfile(ofn): continue
                         obj = CopyFile(ofn)
                         sz0 = 0
                         offset = None
