@@ -20,7 +20,7 @@ Type=oneshot
 User=pat
 WorkingDirectory=/home/pat/ARCTERX/Gliders
 #
-ExecStart=/home/pat/ARCTERX/Gliders/UW_SG.py
+ExecStart=/home/pat/ARCTERX/Gliders/UW_SG.py \
 	--logfile=/home/pat/logs/UW_SG.log \
 	--mailTo="pat@mousebrains.com" \
 	--mailSubject="UW_SG" \

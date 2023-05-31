@@ -103,9 +103,7 @@ if not os.path.isdir(os.path.dirname(args.csv)):
 with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in the database
     for url in args.url:
         ident = os.path.basename(url)
-        logging.info("id %s URL %s", ident, url)
         info = loadURL(url)
-        logging.info("Info %s", info)
         cur = db.cursor()
         saveToDB(cur, args.grp, ident, info)
         db.commit()
