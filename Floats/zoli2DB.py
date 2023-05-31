@@ -46,7 +46,7 @@ class Reader(Thread):
             time.sleep(dt)
             logging.info("Woke up")
             with psycopg.connect(dbOpt) as db: 
-                if self.__loadFile(db, fn):
+                if self.__loadFile(db, fn, args.group):
                     self.__saveCSV(db, args)
 
     @staticmethod
