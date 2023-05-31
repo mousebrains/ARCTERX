@@ -1,0 +1,31 @@
+#
+# Fetch new information for the UW/APL Seaglider information
+#
+# N.B. This has two components, UW_SG.service and UW_SG.timer
+#
+# sudo cp UW_SG.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable UW_SG.timer UW_SG.service
+# sudo systemctl start UW_SG.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=UW_SG data fetch
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Gliders
+#
+ExecStart=/home/pat/ARCTERX/Gliders/UW_SG.py
+	--logfile=/home/pat/logs/UW_SG.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="UW_SG" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,30 @@
+#
+# Fetch UW/APL Seaglider information
+#
+# N.B. This has two components, UW_SG.service and UW_SG.timer
+#
+# sudo cp UW_SG.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable UW_SG.timer UW_SG.service
+# sudo systemctl start UW_SG.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers UW_SG
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Fetch UW/APL Seaglider positions
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+OnCalendar=*-*-* *:01/10:30
+# OnCalendar=*-*-* 00/1:01:30
+# OnCalendar=*-*-* 01/6:01:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
