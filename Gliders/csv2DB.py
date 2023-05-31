@@ -16,6 +16,7 @@ import queue
 import psycopg
 import re
 import glob
+import sys
 import os.path
 
 class Reader(Thread):
@@ -26,7 +27,7 @@ class Reader(Thread):
     def runIt(self) -> None:
         dbOpt = f"dbname={self.args.db}"
         dt = self.args.delay
-        exp = re.compile(r".?[.]csv")
+        exp = re.compile(r".+[.]csv")
         logging.info("exp %s", exp)
         q = self.__queue
 
@@ -92,7 +93,7 @@ class Reader(Thread):
 parser = ArgumentParser()
 Logger.addArgs(parser)
 parser.add_argument("--group", type=str, default="AUV", help="Group name being saved to")
-parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/Gldiers",
+parser.add_argument("--csv", type=str, default="~/Sync.ARCTERX/Shore/Gliders",
         help="Input directory to monitor for changes")
 parser.add_argument("--db", type=str, default="arcterx", help="Which Postgresql DB to use")
 parser.add_argument("--delay", type=float, default=10,
@@ -106,9 +107,6 @@ args.csv = os.path.abspath(os.path.expanduser(args.csv))
 if not os.path.isdir(args.csv):
     logging.error("%s is not a directory", args.csv)
     sys.exit(1)
-
-with psycopg.connect(f"dbname={args.db}") as db:
-    loadAndExecuteSQL(db, args.sql, "glider")
 
 flags = pyinotify.IN_CLOSE_WRITE | pyinotify.IN_MOVED_TO
 
