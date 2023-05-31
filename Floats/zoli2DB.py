@@ -35,6 +35,7 @@ class Reader(Thread):
         cnt = 0
         with psycopg.connect(dbOpt) as db: 
             for fn in glob.glob(os.path.join(args.zoli, "gps_log.txt")):
+                if "share" in fn: continue
                 cnt += self.__loadFile(db, fn, args.group)
             if cnt:
                 self.__saveCSV(db, args)
