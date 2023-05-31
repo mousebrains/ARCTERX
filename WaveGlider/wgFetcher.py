@@ -270,7 +270,7 @@ class FTPfetch:
                         offset = None
                     elif "_met_2023" in fn:
                         ofn = os.path.join(args.output, "CSSMET", fn)
-                        if os.path.isfile(ofn): continue
+                        # if os.path.isfile(ofn): continue
                         obj = CopyFile(ofn)
                         sz0 = 0
                         offset = None
