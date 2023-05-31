@@ -1,0 +1,28 @@
+#
+# Save CSV information into the glider database
+#
+# sudo cp Float_csv2DB.service /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Float_csv2DB.service
+# sudo systemctl start Float_csv2DB.service
+#
+# Apr-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Float CSV to DB
+
+[Service]
+# Launced by timer
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Floats
+#
+ExecStart=/home/pat/ARCTERX/Floats/csv2DB.py \
+	--logfile=/home/pat/logs/Float.csv2DB.log \
+	--verbose
+
+Restart=always
+RestartSec=60
+        
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,28 @@
+#
+# Save CSV information into the glider database from Zoli's files
+#
+# sudo cp Zoli2DB.service /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable Zoli2DB.service
+# sudo systemctl start Zoli2DB.service
+#
+# Apr-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Zoli CSV to DB
+
+[Service]
+# Launced by timer
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Floats
+#
+ExecStart=/home/pat/ARCTERX/Floats/zoli2DB.py \
+	--logfile=/home/pat/logs/zoli2DB.log \
+	--verbose
+
+Restart=always
+RestartSec=60
+        
+[Install]
+WantedBy=multi-user.target
