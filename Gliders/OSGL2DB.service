@@ -1,0 +1,32 @@
+#
+# Monitor a glider dialog and update a database with the time, lat, and lon
+#
+# sudo cp OSGL2DB.service /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable OSGL2DB.service
+# sudo systemctl start OSGL2DB.service
+#
+# Apr-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=OSGL Slocum to DB
+
+[Service]
+# Launced by timer
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Gliders
+#
+ExecStart=/home/pat/ARCTERX/Gliders/OSGL.py \
+	--logfile=/home/pat/logs/OSGL2DB.log \
+	--verbose \
+	--apiListen \
+	--glider=osu684 \
+	--glider=osu685 \
+	--glider=osu686 \
+
+Restart=always
+RestartSec=60
+        
+[Install]
+WantedBy=multi-user.target
