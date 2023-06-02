@@ -1,0 +1,31 @@
+#
+# Fetch new information Luca's WaveGlider data
+#
+# N.B. This has two components, WG_Luca.service and WG_Luca.timer
+#
+# sudo cp WG_Luca.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable WG_Luca.timer WG_Luca.service
+# sudo systemctl start WG_Luca.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Luca's WaveGlider data
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/WaveGlider
+#
+ExecStart=/home/pat/ARCTERX/WaveGlider/wgLucaFetch.py \
+	--logfile=/home/pat/logs/wgLucaFetch.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="WaveGlider Luca Fetcher" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+

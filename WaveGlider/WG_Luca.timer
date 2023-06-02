@@ -1,0 +1,29 @@
+#
+# Scrape Luca's WaveGlider data
+#
+# N.B. This has two components, WG_Luca.service and WG_Luca.timer
+#
+# sudo cp WG_Luca.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable WG_Luca.timer WG_Luca.service
+# sudo systemctl start WG_Luca.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers WG_Luca
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Grab Luca WaveGlider data
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+# Files are updated every 6 hours
+OnCalendar=*-*-* 1/6:4:48
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
