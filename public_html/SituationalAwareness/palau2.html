@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+ <link rel="stylesheet" href="css/leaflet.css" />
+ <link rel="stylesheet" href="css/leaflet-ruler.css" />
+ <link rel="stylesheet" href="css/SitA.css" />
+ <script src="js/leaflet.js"></script>
+ <script src="js/leaflet-ruler.js"></script>
+ <script src="js/SitA2.js"></script>
+ <title>ARCTERX</title>
+</head>
+<body style="height: 100%">
+<div id="map" style="width: 100%; height: 99%;"></div>
+<script>
+var gebcoMap = L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer//tile/{z}/{y}/{x}.png",
+	{
+		maxZoom: 10,
+		attribution: '&copy; GEBCO',
+	});
+var topoMap = L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services//World_Topo_Map/MapServer/tile/{z}/{y}/{x}.png",
+	{
+		maxZoom: 19,
+		attribution: '&copy; ESRI',
+	});
+
+var satMap = L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png",
+	{
+		maxZoom: 17,
+		attribution: '&copy; ESRI',
+	});
+
+var eezMap = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+	{
+		layers: "ARCTERX:eez_boundaries_v11",
+		format: "image/svg",
+		transparent: true,
+	});
+
+var IsoPalau = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+	{
+		layers: "ARCTERX:Palau",
+		format: "image/svg",
+		transparent: true,
+	});
+
+var IsoBasin = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+	{
+		layers: "ARCTERX:isobath",
+		format: "image/svg",
+		transparent: true,
+	});
+
+
+var tailLayer = L.polyline([], {color: "lightgreen"});
+var tailRing = {};
+
+var baseMaps = {
+	"GEBCO": gebcoMap,
+	"Topo": topoMap,
+	"Sattelite": satMap,
+};
+
+var overlayMaps = {
+	"EEZ": eezMap,
+	"Basin": IsoBasin,
+	"Palau": IsoPalau,
+	"colas": tailLayer,
+};
+
+var map = L.map("map", {
+	center: [6.9440, 134.193],  // Hydrographer Bank, Palau
+	zoom: 12,
+	layers: [satMap],
+});
+
+L.control.mousePosition().addTo(map);
+
+var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+var rulerOptions = {
+          lengthUnit: {
+            factor: 0.539956803,    //  from km to nm
+            display: 'NM',
+            decimal: 2
+          }
+        };
+L.control.ruler(rulerOptions).addTo(map);
+
+var colors = {
+	TGT: "#FF69B4",
+	drifter: "blue",
+	WG: "orange",
+	MWB: "darkred",
+	AUV: "pink",
+	FL: "lightblue",
+};
+
+var ships = {};
+var assets = {};
+var openPopups = {};
+
+mkDegMin = function(val) {
+       var signOfVal = val < 0 ? -1 : 1;
+       val = Math.abs(val);
+       var deg = Math.floor(val);
+       var minutes = (val - deg) * 60;
+       return signOfVal * (deg * 100 + minutes);
+}
+
+pruneTail = function(tail) {
+	if (tail.length > 100) { // Trim to at most 100 elements
+		tail = tail.slice(-100);
+	}
+	var t0 = Date.now() / 1000 - 6 * 3600; // Only back six hours worth of data
+	var index = 0;
+	for (index in tail) {
+		var t = tail[index][0];
+		if (t > t0) break;
+	}
+	if (index == 0) return tail;
+	console.log("Pruned in time " + index);
+	return tail.slice(index);
+}
+
+mkPopupText = function(popup) {
+	var marker = popup._source;
+	var myPos = marker.getLatLng();
+	var item = marker.options["item"];
+	var tail = item["tail"];
+	var current = tail.slice(-1)[0];
+	var t = new Date(current[0] * 1000);
+	var txt = "<center>" + item["grp"] + ": " + item["ident"];
+	txt += "<br>" + myPos.lat.toFixed(6) + " " + myPos.lng.toFixed(6);
+	txt += "<br>" + mkDegMin(myPos.lat).toFixed(4) + " " + mkDegMin(myPos.lng).toFixed(4);
+	txt += "<br>" + t.toUTCString();
+	if (tail.length > 1) {
+		prev = tail.slice(-2)[0];
+		var dt = (current[0] - prev[0]) / 3600;
+		var dist = current[1].distanceTo(prev[1]) / 1852;
+		var bearing = current[1].bearingTo(prev[1]);
+		txt += "<br>Spd " + (dist / dt).toFixed(2) + " kts Hdg "
+			+ bearing.toFixed(0) + " deg true";
+	}
+	for (var shp in ships) {
+		var a = ships[shp];
+		if ((item["key"] == "ship") && (item["ident"] == a["ident"])) continue;
+		var shipPos = a["marker"].getLatLng();
+		var dist = myPos.distanceTo(shipPos) / 1852; // Nautical Miles
+		var bearing = myPos.bearingTo(shipPos);
+		txt += "<br>From " + a["ident"] 
+			+ " " + dist.toFixed(2) 
+			+ " NM " + bearing.toFixed(0) + " deg true";
+	}
+
+	txt += "</center>";
+
+	popup.setContent(txt);
+};
+
+map.on("popupopen", function(e) {
+	var popup = e.popup;
+	var marker = popup._source;
+	var item = marker.options["item"];
+	mkPopupText(popup);
+	openPopups[item["popupID"]] = popup;
+});
+
+map.on("popupclose", function(e) {
+	var popup = e.popup;
+	var marker = popup._source;
+	var item = marker.options["item"];
+	delete openPopups[item["popupID"]];
+});
+
+
+const posSource = new EventSource("pos.php");
+posSource.onmessage = (event) => {
+	var data = JSON.parse(event.data);
+	var qShip = false;
+	console.log(data);
+	for (var grp in data) {
+		if (grp == "errors") {
+			console.log("ERROR: " + data[grp]);
+			continue;
+		}
+		var item = grp == "ship" ? ships : assets;
+		qShip |= grp == "ship";
+		for (var ident in data[grp]) {
+			var key = grp + "_" + ident;
+			var rows = data[grp][ident];
+			for (var index in rows) {
+				row = rows[index];
+				t = row[0];
+				pos = new L.LatLng(row[1], row[2]);
+				if (!(key in item)) { // Not in item
+					var color = (grp in colors) ? colors[grp] : "green";
+					item[key] = {
+						grp: grp,
+						ident: ident,
+						tail: [],
+						popupID: key,
+					};
+					item[key]["marker"] = L.circleMarker(pos, {
+						radius: 10,
+						color: color,
+						fillColor: color,
+						opacity: 0.75,
+						fillOpacity: 0.75,
+						item: item[key],});
+					item[key]["marker"].addTo(map).bindPopup(
+						"<div id='" + item[key] + "_divID'>" +
+						grp + ": " + ident + "</div>",
+						{
+							closeOnClick: false,
+							autoClose: false,
+						});
+				} // if key in item
+				item[key]["tail"].push([t, pos]);
+			} // for index
+			item[key]["tail"].sort();
+			item[key]["tail"] = pruneTail(item[key]["tail"]);
+			var tail = item[key]["tail"];
+			item[key]["marker"].setLatLng(tail.slice(-1)[0][1]);
+			for (popupID in openPopups) mkPopupText(openPopups[popupID]);
+
+			var cola = [];
+			for (var index in tail) cola.push(tail[index][1]);
+			if (!(key in tailRing)) tailRing[key] = Object.keys(tailRing).length;
+			var ring = tailRing[key];
+			if (tailLayer.isEmpty()) { // First polyline
+				tailLayer.setLatLngs([cola]);
+			} else {
+				var todo = tailLayer.getLatLngs();
+				todo[ring] = cola;
+				tailLayer.setLatLngs(todo);
+			}
+		} // for ident
+	} // for grp
+	if (false && Ship) { // Adjust viewpoint to centroid of ships
+		var lat0 = 0;
+		var lon0 = 0;
+		var cnt = 0;
+		for (var shp in ships) {
+			cnt += 1;
+			pos0 = ships[shp].tail.slice(-1)[0][1];
+			lat0 = pos0.lat;
+			lon0 = pos0.lng;
+		}
+                if (cnt) {
+			map.panTo(new L.latLng(lat0 / cnt, lon0 / cnt));
+		}
+	}
+} // onmessage
+</script>
+</body>
+</html>
