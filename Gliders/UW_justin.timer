@@ -1,0 +1,28 @@
+#
+# Fetch UW/APL Seaglider information
+#
+# N.B. This has two components, UW_justin.service and UW_justin.timer
+#
+# sudo cp UW_justin.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable UW_justin.timer UW_justin.service
+# sudo systemctl start UW_justin.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers UW_justin
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Fetch UW/APL Seaglider positions
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+OnCalendar=*-*-* 01/6:01:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

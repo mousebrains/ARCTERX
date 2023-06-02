@@ -12,7 +12,6 @@ from TPWUtils import Logger
 import logging
 from argparse import ArgumentParser
 import datetime
-import datetime
 import psycopg
 import os
 import requests
