@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Install Dong's model service and timer
+# Install Glider service and timer
 #
 # June-2023, Pat Welch, pat@mousebrains.com
 
@@ -8,5 +8,5 @@ myPath=`dirname $0`
 
 $myPath/TPWUtils/install.py \
 	--verbose \
-	--service=DongKo.service \
+	--service=Glider_csv2DB.service \
 	$*
