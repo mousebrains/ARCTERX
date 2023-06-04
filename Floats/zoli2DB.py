@@ -56,16 +56,16 @@ class Reader(Thread):
         sql0+= " VALUES(%s,%s,%s,%s,%s)"
         sql0+= " ON CONFLICT DO NOTHING;"
 
-        # sql1 = "SELECT position FROM filePosition WHERE filename=%s;"
+        sql1 = "SELECT position FROM filePosition WHERE filename=%s;"
 
-        # sql2 = "INSERT INTO filePosition VALUES (%s,%s)"
-        # sql2+= " ON CONFLICT (filename) DO UPDATE SET position=excluded.position;"
+        sql2 = "INSERT INTO filePosition VALUES (%s,%s)"
+        sql2+= " ON CONFLICT (filename) DO UPDATE SET position=excluded.position;"
 
         cur = db.cursor()
         pos = None
-        # for row in cur.execute(sql1, [fn]):
-            # pos = row[0]
-            # break
+        for row in cur.execute(sql1, [fn]):
+            pos = row[0]
+            break
 
         ident = os.path.basename(os.path.dirname(fn))
         qAlto = "alto" in fn
@@ -81,8 +81,10 @@ class Reader(Thread):
             for line in fp:
                 fields = line.strip().split(",")
                 if len(fields) < (4+qAlto): continue # Truncated line, so ignore
-                if fields[0] == "flnum": continue # Alto header
+                if fields[0] in ("flnum", "id"): continue # Alto header
                 try:
+                    if qAlto and ((fields[1] == "divenum") or (float(fields[1]) < 0)):
+                        continue # Skip prep testing
                     args = (
                             grp,
                             ident,
@@ -98,7 +100,7 @@ class Reader(Thread):
             if cnt:
                 ipos = pos
                 pos = fp.tell()
-                # cur.execute(sql2, (fn, pos))
+                cur.execute(sql2, (fn, pos))
                 logging.info("Loaded %s cnt %s pos %s -> %s", fn, cnt, ipos, pos)
                 db.commit();
             else:
