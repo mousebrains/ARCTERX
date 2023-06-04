@@ -6,7 +6,7 @@
 
 from TPWUtils import Logger
 from argparse import ArgumentParser
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 import datetime
 import numpy as np
 import pandas as pd

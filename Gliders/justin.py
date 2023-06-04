@@ -10,7 +10,7 @@
 from TPWUtils import Logger
 import logging
 from argparse import ArgumentParser
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 import datetime
 import psycopg
 import os.path

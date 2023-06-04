@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import pandas as pd
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 import os
 import sys
 from datetime import datetime

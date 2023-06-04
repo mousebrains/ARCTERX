@@ -12,7 +12,7 @@ from TPWUtils import Logger
 from TPWUtils.loadAndExecuteSQL import loadAndExecuteSQL
 import logging
 from argparse import ArgumentParser
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 import math
 import datetime
 import re

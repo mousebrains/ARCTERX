@@ -7,7 +7,7 @@
 # Feb-2020, Pat Welch, pat@mousebrains.com
 
 from TPWUtils import Logger
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 from argparse import ArgumentParser
 import xarray as xr
 import numpy as np

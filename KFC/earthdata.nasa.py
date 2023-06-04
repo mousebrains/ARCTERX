@@ -11,7 +11,7 @@
 
 from TPWUtils import Logger
 from argparse import ArgumentParser
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 import requests
 import xarray as xr
 import os

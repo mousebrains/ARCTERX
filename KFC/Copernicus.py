@@ -11,7 +11,7 @@ import xarray as xr
 import os
 from pydap.client import open_url
 from pydap.cas.get_cookies import setup_session
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 from Config import loadConfig
 
 def saveFile(ds:xr.Dataset, fn:str) -> None:

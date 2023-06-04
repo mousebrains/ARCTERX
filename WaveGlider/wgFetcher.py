@@ -6,7 +6,7 @@
 
 from TPWUtils import Logger
 from TPWUtils.loadAndExecuteSQL import loadAndExecuteSQL
-from Credentials import getCredentials
+from TPWUtils.Credentials import getCredentials
 import logging
 from argparse import ArgumentParser
 from ftplib import FTP
