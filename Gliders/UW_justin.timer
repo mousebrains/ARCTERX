@@ -20,7 +20,7 @@ Description=Fetch UW/APL Seaglider positions
 
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
-OnCalendar=*-*-* 01/6:01:30
+OnCalendar=*-*-* *:01/15:30
 Persistent=true
 
 [Install]

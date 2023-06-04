@@ -21,7 +21,7 @@ Description=Grab Luca WaveGlider data
 [Timer]
 # dayOfWeek Year-Month-Day Hour:Minute:Second
 # Files are updated every 6 hours
-OnCalendar=*-*-* 1/6:4:48
+OnCalendar=*-*-* *:4/15:48
 Persistent=true
 
 [Install]
