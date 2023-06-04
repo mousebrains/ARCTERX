@@ -7,7 +7,6 @@
 myPath=`dirname $0`
 
 $myPath/TPWUtils/install.py \
-	--dryrun \
 	--verbose \
 	--service=WaveGlider.service \
 	--service=WG_Luca.service \
