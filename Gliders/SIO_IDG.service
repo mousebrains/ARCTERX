@@ -1,0 +1,31 @@
+#
+# Fetch new information for the SIO/IDG Spray, Solo, and FCS information
+#
+# N.B. This has two components, SIO_IDG.service and SIO_IDG.timer
+#
+# sudo cp SIO_IDG.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable SIO_IDG.timer SIO_IDG.service
+# sudo systemctl start SIO_IDG.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=SIO_IDG data fetch
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Gliders
+#
+ExecStart=/home/pat/ARCTERX/Gliders/SIO_IDG.py \
+	--logfile=/home/pat/logs/SIO_IDG.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="SIO_IDG" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+
