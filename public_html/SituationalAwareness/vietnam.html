@@ -50,48 +50,6 @@ var IsoDeep = L.tileLayer.wms("https://gliderwms1.ceoas.oregonstate.edu/geoserve
 		transparent: true,
 	});
 
-var nineDashLayer = L.polyline([
-	[17.8, 107.9818],
-	[15.93, 109.6952],
-	[14.03014, 110.47502],
-	[12.14642, 110.33224],
-	[6.6632, 108.35668],
-	],
-	{color: "black",
-		dashArray: "100 100",
-	});
-
-var hpLayer = L.polyline([
-	[10.1477, 104.91324],
-	[8.64157, 103.12844],
-	[7.14574, 105.193],
-	[7.30918, 108.07096],
-	[11.93436, 110.28281],
-	[12.21374, 109.2491],
-	],
-	{color: "purple"
-	});
-
-var gldLayer = L.polyline([
-	[10.1477, 104.91324],
-	[8.64157, 103.12844],
-	[7.14574, 105.193],
-	[7.30918, 109.07096],
-	[11.93436, 111.28281],
-	[12.21374, 109.2491],
-	],
-	{color: "red",
-		dashArray: "40 40",
-	});
-
-var naga1Line = L.polyline([[15.66667, 108.49445], [15.66667, 112.9500]], {color: "lightgreen"});
-var naga2Line = L.polyline([[13.46667, 109.28333], [13.46667, 113.6000]], {color: "lightgreen"});
-var naga3Line = L.polyline([[12.37028, 109.35556], [10.54167, 112.88889]], {color: "lightgreen"});
-var naga4Line = L.polyline([[11.03333, 108.98333], [ 7.96667, 111.40694]], {color: "lightgreen"});
-var naga5Line = L.polyline([[ 9.71667, 107.62500], [ 6.23611, 108.86389]], {color: "lightgreen"});
-var naga6Line = L.polyline([[ 8.35000, 104.83056], [ 4.61667, 106.50833]], {color: "lightgreen"});
-var nagaLines = L.layerGroup([naga1Line, naga2Line, naga3Line, naga4Line, naga5Line, naga6Line]);
-
 var tailLayer = L.polyline([], {color: "lightgreen"});
 var tailRing = {};
 
@@ -105,16 +63,12 @@ var overlayMaps = {
 	"EEZ": eezMap,
 	"Shallow": IsoShallow,
 	"Deep": IsoDeep,
-	"Nine-Dash": nineDashLayer,
-	"HP's line": hpLayer,
-	"Kipp's line": gldLayer,
-	"Naga Lines": nagaLines,
 };
 
 var map = L.map("map", {
 	center: [9.1, 107.1],  // Interior eddy in mid-June
 	zoom: 7,
-	layers: [topoMap, eezMap, IsoDeep, hpLayer, gldLayer, nineDashLayer, nagaLines],
+	layers: [topoMap, eezMap, IsoDeep],
 });
 
 L.control.mousePosition().addTo(map);
@@ -295,6 +249,29 @@ posSource.onmessage = (event) => {
 		}
 	}
 } // onmessage
+
+async function getJSON(url) {
+	var response = await fetch(url);
+	var body = await response.json();
+	console.log(body);
+	body["features"].forEach((feature) => {
+		var props = feature.properties;
+		var layerName = ("name" in props) ? props.name : "GotMe";
+		var layer = L.geoJSON(feature, 
+			{style: function(feature) {
+				var props = feature.properties;
+				style = {};
+				if ("color" in props) style["color"] = props.color;
+				if ("dashArray" in props) style["dashArray"] = props.dashArray;
+				return style;
+			}});
+	        layerControl.addOverlay(layer, layerName);
+		if ("display" in props) map.addLayer(layer);
+	});
+}
+
+getJSON("naga.geojson");
+
 </script>
 </body>
 </html>
