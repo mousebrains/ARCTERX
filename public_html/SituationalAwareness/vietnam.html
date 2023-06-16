@@ -253,7 +253,6 @@ posSource.onmessage = (event) => {
 async function getJSON(url) {
 	var response = await fetch(url);
 	var body = await response.json();
-	console.log(body);
 	body["features"].forEach((feature) => {
 		var props = feature.properties;
 		var layerName = ("name" in props) ? props.name : "GotMe";
