@@ -14,7 +14,7 @@ import psycopg
 import os
 
 def openFile(fn:str, qForce:bool):
-    if not qForace and os.path.exist(fn):
+    if not qForce and os.path.isfile(fn):
         logging.info("Opening %s", fn)
         return open(fn, "a")
 
