@@ -1,0 +1,30 @@
+#
+# DB to CSV
+#
+# N.B. This has two components, UpdateGliderCSV.service and UpdateGliderCSV.timer
+#
+# sudo cp UpdateGliderCSV.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable UpdateGliderCSV.timer UpdateGliderCSV.service
+# sudo systemctl start UpdateGliderCSV.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers UpdateGliderCSV
+# 
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=AUV DB to CSV
+
+[Timer]
+# dayOfWeek Year-Month-Day Hour:Minute:Second
+OnCalendar=*-*-* *:01/30:30
+# OnCalendar=*-*-* 00/1:01:30
+# OnCalendar=*-*-* 01/6:01:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+

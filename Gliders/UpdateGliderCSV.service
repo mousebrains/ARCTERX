@@ -1,0 +1,31 @@
+#
+# Extract records into CSV from DB
+#
+# N.B. This has two components, UpdateGliderCSV.service and UpdateGliderCSV.timer
+#
+# sudo cp UpdateGliderCSV.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable UpdateGliderCSV.timer UpdateGliderCSV.service
+# sudo systemctl start UpdateGliderCSV.timer
+#
+# Feb-2022, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=AUV DB to CSV
+
+[Service]
+# Launced by timer
+Type=oneshot
+User=pat
+WorkingDirectory=/home/pat/ARCTERX/Gliders
+#
+ExecStart=/home/pat/ARCTERX/Gliders/updateCSV.py \
+	--logfile=/home/pat/logs/UpdateGliderCSV.log \
+	--mailTo="pat@mousebrains.com" \
+	--mailSubject="Update Glider CSV" \
+	--verbose
+        
+[Install]
+WantedBy=multi-user.target
+
