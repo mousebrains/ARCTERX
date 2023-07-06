@@ -13,6 +13,21 @@ import logging
 import psycopg
 import os
 
+def openFile(fn:str, qForce:bool):
+    if not qForace and os.path.exist(fn):
+        logging.info("Opening %s", fn)
+        return open(fn, "a")
+
+    dirname = os.path.dirname(fn)
+    if not os.path.isdir(dirname):
+        logging.info("Creating %s", dirname)
+        os.makedirs(dirname, mode=0o755, exist_ok=True)
+
+    logging.info("Creating %s", fn)
+    fp = open(fn, "w")
+    fp.write("id,t,lat,lon\n")
+    return fp
+
 parser = ArgumentParser()
 Logger.addArgs(parser)
 parser.add_argument("--grp", type=str, default="AUV", help="Group name")
@@ -38,18 +53,7 @@ sql1+= "INSERT INTO TPW SELECT * FROM updated;"
 
 sql2 = "SELECT id,t,lat,lon FROM TPW ORDER BY t;"
 
-if args.force or not os.path.exists(args.csv):
-    dirname = os.path.dirname(args.csv)
-    if not os.path.isdir(dirname):
-        logging.info("Creating %s", dirname)
-        os.makedirs(dirname, mode=0o755, exist_ok=True)
-
-    logging.info("Creating %s", args.csv)
-    fp = open(args.csv, "w")
-    fp.write("id,t,lat,lon\n")
-else:
-    logging.info("Opening %s", args.csv)
-    fp = open(args.csv, "a")
+fp = None
 
 with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in the database
     try:
@@ -60,6 +64,7 @@ with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in t
 
         cnt = 0
         for row in cur.execute(sql2):
+            if fp is None: fp = openFile(args.csv, args.force)
             fp.write(",".join(map(str, row)) + "\n")
             cnt += 1
 
