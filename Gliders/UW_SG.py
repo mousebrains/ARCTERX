@@ -49,13 +49,6 @@ if not args.url:
             "https://iopbase3.apl.washington.edu/pos/poll/687",
             )
 
-args.csv = os.path.abspath(os.path.expanduser(args.csv))
-
-if not os.path.isdir(os.path.dirname(args.csv)):
-    dirname = os.path.dirname(args.csv)
-    logging.info("Creating %s", dirname)
-    os.makedirs(dirname, mode=0o755, exist_ok=True)
-
 with psycopg.connect(f"dbname={args.db}") as db: # Get the last time stored in the database
     for url in args.url:
         ident = os.path.basename(url)
