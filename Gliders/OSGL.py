@@ -119,6 +119,7 @@ class Listener(Thread):
                     raise Exception("Error starting API Listener")
 
                 if (len(line) == 0) and (p.poll() is not None):
+                    logging.warning("Broken connection")
                     break # Broken connection
 
                 buffer = self.__apiLine(line, buffer)
