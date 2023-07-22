@@ -1,0 +1,10 @@
+__pycache__
+*~
+.*~
+.*.swp
+*.nc
+data
+combo
+gliders
+googleDrive
+syncit.orig

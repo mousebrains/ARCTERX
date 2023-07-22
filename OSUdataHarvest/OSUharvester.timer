@@ -1,0 +1,27 @@
+#
+# Fetch OSU glider information
+#
+# N.B. This has two components, OSUharvester.service and OSUharvester.timer
+#
+# sudo cp OSUharvester.* /etc/systemd/system/
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable OSUharvester.timer OSUharvester.service
+# sudo systemctl start OSUharvester.timer
+#
+# To view the timers:
+# 
+# sudo systemctl list-timers OSUharvester
+# 
+# July-2023, Pat Welch, pat@mousebrains.com
+
+[Unit]
+Description=Fetch OSU glider information and generate NetCDF files
+
+[Timer]
+OnCalendar=*-*-* 01/12:01:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
