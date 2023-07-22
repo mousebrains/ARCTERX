@@ -1,9 +1,11 @@
 #! /usr/bin/env python3
 #
-# Pull KMZ and .mat files from a Google Drive via rclone
-# Then process the .mat files into position information
+# Process the .mat files into position information
 # The position information is then poured into a database
-# The position information in the database is then poured a CSV file for the ship
+#
+# There is an rclone mount process keeping everything synced with Google Drive
+#
+# The positions are poured into a CSV file for the ship via updateCSV.py
 #
 # June-2023, Pat Welch, pat@mousebrains.com
 
@@ -16,30 +18,11 @@ from scipy.io import matlab
 import numpy as np
 import pandas as pd
 import psycopg
-
-def syncFiles(args:ArgumentParser) -> bool:
-    if args.nosync: return True
-    cmd = (args.rclone, "--verbose", "sync", args.src, args.dest)
-    a = subprocess.run(cmd,
-                       shell=False,
-                       check=False,
-                       stderr=subprocess.STDOUT,
-                       stdout=subprocess.PIPE,
-                       )
-    if a.stdout:
-        logging.info("RCLONE %s", " ".join(cmd))
-        try:
-            logging.info("\n%s", str(a.stdout, "UTF-8"))
-        except:
-            logging.info("\n%s", a.stdout)
-    if a.returncode == 0: return True
-    logging.error("RClone failed, %s\n%s", cmd, a)
-    return False
+import sys
 
 def harvestData(args:ArgumentParser) -> pd.DataFrame:
-    src = args.dest
     matFiles = set()
-    for (root, dirs, files) in os.walk(args.dest):
+    for (root, dirs, files) in os.walk(args.source):
         for fn in files:
             if fn.endswith(".mat"): matFiles.add(os.path.join(root, fn))
 
@@ -86,17 +69,13 @@ def saveData(df:pd.DataFrame, args:ArgumentParser) -> None:
             row = list(df.iloc[index])
             row[2] = row[2].to_pydatetime()
             cur.execute(sql2, row)
-        db.commit()
+        db.commit() if not args.nodb else db.rollback()
 
 parser = ArgumentParser()
 Logger.addArgs(parser)
-grp = parser.add_argument_group(description="rclone related options")
-grp.add_argument("--nosync", action="store_true", help="Do not sync using rclone")
-grp.add_argument("--rclone", type=str, default="~/bin/rclone", help="Path to rclone command")
-grp.add_argument("--src", type=str, default="GDrive:2023 IOP/Data", help="rclone source directory")
-grp.add_argument("--dest", type=str, default="~/public_html/data",
-                 help="rclone destination directory")
 grp = parser.add_argument_group(description="database related options")
+grp.add_argument("--source", type=str, default="~/mnt/GDrive",
+                 help="Where Google Drive files are located")
 grp.add_argument("--nodb", action="store_true", help="Do not update the database")
 grp.add_argument("--db", type=str, default="arcterx", help="Database name")
 grp.add_argument("--table", type=str, default="glider", help="Database table to insert into")
@@ -104,19 +83,15 @@ args = parser.parse_args()
 
 Logger.mkLogger(args, fmt="%(asctime)s %(levelname)s: %(message)s")
 
-args.rclone = os.path.abspath(os.path.expanduser(args.rclone))
-args.dest   = os.path.abspath(os.path.expanduser(args.dest))
+args.source = os.path.abspath(os.path.expanduser(args.source))
+
+if not os.path.isdir(args.source):
+    logging.error("%s is not a directory", args.source)
+    sys.exit(1)
 
 try:
-    if not os.path.isdir(os.path.dirname(args.dest)):
-        dirname = os.path.dirname(args.dest)
-        logging.info("Creating %s", dirname)
-        os.makedirs(dirname, 0o755, exist_ok=True)
-
-    if syncFiles(args):
-        df = harvestData(args)
-        logging.info("Harvested %s rows", df.shape[0])
-        if not args.nosync and df is not None: 
-            saveData(df, args)
+    df = harvestData(args)
+    logging.info("Harvested %s rows", df.shape[0])
+    if df is not None: saveData(df, args)
 except:
     logging.exception("args %s", args)
