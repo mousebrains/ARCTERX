@@ -1,0 +1,34 @@
+# Run rclone mount to Google Drive for ARCTERX
+
+[Unit]
+Description=rclone: Remote FUSE filesystem for cloud storage config %i
+Documentation=man:rclone(1)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Type=simple
+
+User=pat
+Group=pat
+
+WorkingDirectory=/home/pat/logs
+
+ExecStartPre=-/usr/bin/mkdir -p /home/pat/mnt/GDrive
+
+ExecStart= \
+  /home/pat/bin/rclone mount \
+    --config=/home/pat/.config/rclone/rclone.conf \
+    --vfs-cache-mode writes \
+    --vfs-cache-max-size 100M \
+    --log-level DEBUG \
+    --log-file /home/pat/logs/GDrive.log \
+    --umask 022 \
+    ARCTERX:'2023 IOP/Data' /home/pat/mnt/GDrive
+
+ExecStop=/usr/bin/fusermount -u /home/pat/mnt/GDrive
+
+Restart=always
+RestartSec=60
+[Install]
+WantedBy=default.target
