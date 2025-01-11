@@ -23,45 +23,6 @@
     {
       "type": "Feature",
       "geometry": {
-        "type": "LineString",
-        "coordinates": [
-		[104.91324, 10.1477],
-		[103.12844, 8.64157],
-		[105.19300, 7.14574],
-		[108.07096, 7.30918],
-		[110.28281, 11.93436],
-		[109.24910, 12.21374]
-		]
-      },
-      "properties": {
-        "name": "HP's line",
-	"color": "purple",
-	"display": 1
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-		[104.91324, 10.1477],
-		[103.12844, 8.64157],
-		[105.19300, 7.14574],
-		[108.90000, 7.30918],
-		[111.28281, 11.93436],
-		[109.33900, 12.40000]
-		]
-      },
-      "properties": {
-        "name": "Kipp's line",
-	"color": "red",
-	"dashArray": "10 10",
-	"display": 1
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
         "type": "MultiLineString",
         "coordinates": [
 		[[108.49445, 15.66667], [112.9500,  15.66667]],
@@ -77,6 +38,551 @@
 	"color": "lightgreen",
 	"display": 1
       }
-    }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+                [[109.25, 15.666667], [110.55, 15.666667]]
+        ]
+      },
+      "properties": {
+        "name": "Naga 1 glider line",
+	"color": "darkgreen",
+	"display": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+                [[109.5, 13.466667], [111.5, 13.46667]]
+        ]
+      },
+      "properties": {
+        "name": "Naga 2 glider line",
+	"color": "darkgreen",
+	"display": 1
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [
+		[[108.07, 16.6],
+                 [110.977, 16.24511],
+                 [110.977, 15.56677],
+                 [112.46, 15.56677],
+                 [112.46, 14.4],
+                 [112.46, 12.55],
+                 [109.41, 12.55],
+                 [109.16, 14.4],
+                 [108.07, 16.6]
+		]
+        ]
+      },
+      "properties": {
+        "name": "Naga 1+2 joint box",
+	"color": "darkgreen",
+	"display": 1
+      }
+    },
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.2, 11.963416666666665]
+  },
+  "properties": {
+    "name": "BV1",
+    "note": "Cam Ranh province",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.37180555555555, 11.879222222222223]
+  },
+  "properties": {
+    "name": "BV10",
+    "note": "The eastern coastal area of Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.19275, 11.94875]
+  },
+  "properties": {
+    "name": "BV2",
+    "note": "Cam Ranh Bay",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.18830555555556, 11.926944444444445]
+  },
+  "properties": {
+    "name": "BV3",
+    "note": "Cam Ranh province",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.18280555555556, 11.913277777777779]
+  },
+  "properties": {
+    "name": "BV4",
+    "note": "Cam Ranh province",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.16916666666667, 11.898388888888888]
+  },
+  "properties": {
+    "name": "BV5",
+    "note": "Cam Ranh Bay",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.19341666666666, 11.879944444444446]
+  },
+  "properties": {
+    "name": "BV6",
+    "note": "Narrow Door",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.20125, 11.867750000000001]
+  },
+  "properties": {
+    "name": "BV7",
+    "note": "Narrow Door",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.24380555555555, 11.850472222222223]
+  },
+  "properties": {
+    "name": "BV8",
+    "note": "Northern coast of Binh Ba island",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.34780555555555, 11.812861111111111]
+  },
+  "properties": {
+    "name": "BV9",
+    "note": "The southeastern coastal area of Cam Ranhpeninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.24255555555555, 12.00538888888889]
+  },
+  "properties": {
+    "name": "HL1",
+    "note": "The coastal area east of Cam Ranh airport",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.24427777777778, 12.004805555555556]
+  },
+  "properties": {
+    "name": "HL2",
+    "note": "The coastal area east of Cam Ranh airport",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.24077777777778, 11.99461111111111]
+  },
+  "properties": {
+    "name": "HL3",
+    "note": "The coastal area east of Cam Ranh airport",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.37566666666666, 11.96275]
+  },
+  "properties": {
+    "name": "Hospital11",
+    "note": "eastern sea of Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.35830555555555, 12.00075]
+  },
+  "properties": {
+    "name": "Hospital12",
+    "note": "The eastern coastal area of Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.21466666666667, 11.959805555555555]
+  },
+  "properties": {
+    "name": "NC1",
+    "note": "Coast of Cam Ranh Bay, Cam Ranh Peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.29069444444444, 11.835611111111112]
+  },
+  "properties": {
+    "name": "NC10",
+    "note": "The southeastern coastal area of Cam Ranhpeninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.30822222222221, 11.879916666666666]
+  },
+  "properties": {
+    "name": "NC11",
+    "note": "The eastern sea of Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.31127777777778, 11.95786111111111]
+  },
+  "properties": {
+    "name": "NC12",
+    "note": "The eastern sea of Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.29580555555556, 11.98511111111111]
+  },
+  "properties": {
+    "name": "NC13",
+    "note": "The eastern coastal area of Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.25822222222222, 11.978833333333334]
+  },
+  "properties": {
+    "name": "NC14",
+    "note": "coast of Da Cao mountain, Cam Ranh peninsula",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.20330555555556, 11.961833333333333]
+  },
+  "properties": {
+    "name": "NC2",
+    "note": "Cam Ranh province",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.19625, 11.947583333333334]
+  },
+  "properties": {
+    "name": "NC3",
+    "note": "Cam Ranh Bay",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.19183333333334, 11.925805555555556]
+  },
+  "properties": {
+    "name": "NC4",
+    "note": "Cam Ranh Bay",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.18597222222223, 11.911333333333333]
+  },
+  "properties": {
+    "name": "NC5",
+    "note": "Cam Ranh Bay",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.1743888888889, 11.898972222222222]
+  },
+  "properties": {
+    "name": "NC6",
+    "note": "Cam Ranh province",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.19616666666667, 11.882416666666668]
+  },
+  "properties": {
+    "name": "NC7",
+    "note": "Narrow Door",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.20375, 11.87063888888889]
+  },
+  "properties": {
+    "name": "NC8",
+    "note": "Narrow Door",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.24852777777778, 11.852416666666667]
+  },
+  "properties": {
+    "name": "NC9",
+    "note": "Cape C a",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.22030555555556, 12.023972222222223]
+  },
+  "properties": {
+    "name": "RR1",
+    "note": "East coast of As Duong hill, Cam Nghia ward",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.20594444444444, 12.018222222222223]
+  },
+  "properties": {
+    "name": "RR2",
+    "note": "Cam Ranh Bay, Cam Nghia ward",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.19497222222222, 12.013833333333332]
+  },
+  "properties": {
+    "name": "RR3",
+    "note": "National Highway 1, Cam Nghia ward",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.10669444444444, 11.810583333333334]
+  },
+  "properties": {
+    "name": "RR4",
+    "note": "Highway 1, Cam Thinh Dong commune",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.12780555555555, 11.804083333333335]
+  },
+  "properties": {
+    "name": "RR5",
+    "note": "Peak 420 Bay Mountain",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.16397222222223, 11.783305555555556]
+  },
+  "properties": {
+    "name": "RR6",
+    "note": "Peak 708 Nuoc Nhi mountain",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.18388888888889, 11.75763888888889]
+  },
+  "properties": {
+    "name": "RR7",
+    "note": "Peak 586 of Hon Ty mountain",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.22269444444444, 11.727611111111111]
+  },
+  "properties": {
+    "name": "RR8",
+    "note": "Da Vach mountain peak",
+    "color": "black",
+    "display": 1
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [109.23316666666666, 11.727722222222223]
+  },
+  "properties": {
+    "name": "VD9",
+    "note": "Da Vach Cape",
+    "color": "black",
+    "display": 1
+  }
+}
   ]
 }

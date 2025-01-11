@@ -29,27 +29,26 @@ var satMap = L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services
 		attribution: '&copy; ESRI',
 	});
 
-var eezMap = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+var eezMap = L.tileLayer.wms("https://gliderwms.ceoas.oregonstate.edu/geoserver/Gliderwms/wms?",
 	{
-		layers: "ARCTERX:eez_boundaries_v11",
+		layers: "Gliderwms:EEZ",
 		format: "image/svg",
 		transparent: true,
 	});
 
-var IsoPalau = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+var IsoPalau = L.tileLayer.wms("https://gliderwms.ceoas.oregonstate.edu/geoserver/Gliderwms/wms?",
 	{
-		layers: "ARCTERX:Palau",
+		layers: "Gliderwms:PalauIsobath",
 		format: "image/svg",
 		transparent: true,
 	});
 
-var IsoBasin = L.tileLayer.wms("https://gliderwms0.ceoas.oregonstate.edu/geoserver/wms?",
+var IsoBasin = L.tileLayer.wms("https://gliderwms.ceoas.oregonstate.edu/geoserver/Gliderwms/wms?",
 	{
-		layers: "ARCTERX:isobath",
+		layers: "Gliderwms:ARCTERXIsobath",
 		format: "image/svg",
 		transparent: true,
 	});
-
 
 var tailLayer = L.polyline([], {color: "lightgreen"});
 var tailRing = {};
